@@ -16,8 +16,7 @@ app.post("*", async (req, res) => {
 });
 
 app.get("*", async (req, res) => {
-  res.send(await handler(req));
-  console.log(req.body);
+  res.send("Hello world");
 });
 
 app.listen(PORT, () => {
