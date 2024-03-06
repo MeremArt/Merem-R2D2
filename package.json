@@ -1,0 +1,16 @@
+{
+  "name": "merem_bot",
+  "version": "1.0.0",
+  "description": "bot ",
+  "main": "index.js",
+  "scripts": {
+    "start": "nodemon app.js"
+  },
+  "author": "Ugo Chinemerem",
+  "license": "ISC",
+  "dependencies": {
+    "axios": "^1.6.7",
+    "dotenv": "^16.4.5",
+    "express": "^4.18.3"
+  }
+}
