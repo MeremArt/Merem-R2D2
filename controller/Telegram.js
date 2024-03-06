@@ -114,12 +114,19 @@ const handleMessage = (messageObj) => {
 
   if (messageText.startsWith("/")) {
     const command = messageText.substr(1);
+    const botInformationString = `
+🌐 Crypto Prices: Get Bitcoin, Ethereum, and Solana prices.
+
+💬 Motivation: Type "/motivation" for an inspiring quote.
+
+🌦️ Weather: "/weather" + city for forecasts.
+`;
+
+    console.log(botInformationString);
+
     switch (command.toLowerCase()) {
       case "start":
-        return sendMessage(
-          messageObj,
-          "Hello! Father. How may I be of service?"
-        );
+        return sendMessage(messageObj, botInformationString);
       case "weather":
         return getWeather(messageObj);
       case "motivation":
@@ -137,7 +144,10 @@ const handleMessage = (messageObj) => {
     messageText.toLowerCase() === "hello"
   ) {
     // Check for variations of "hi" and "hello"
-    return sendMessage(messageObj, "How may I assist you today creator?");
+    return sendMessage(
+      messageObj,
+      "Hey there, I'm Merem-R2D2, a bot created by Merem's-Lab"
+    );
   } else {
     return sendMessage(messageObj, messageText);
   }
