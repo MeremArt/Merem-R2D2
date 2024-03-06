@@ -87,8 +87,9 @@ const getWeather = async (messageObj) => {
 const sendMessage = (messageObj, messageText) => {
   const chat_id = messageObj?.chat?.id;
   if (!chat_id) {
-    console.error("Error: chat_id is empty or undefined");
-    return Promise.reject("chat_id is empty or undefined");
+    const errorMessage = "Error: chat_id is empty or undefined";
+    console.error(errorMessage, messageObj);
+    return Promise.reject(errorMessage);
   }
 
   const data = {
@@ -96,7 +97,16 @@ const sendMessage = (messageObj, messageText) => {
     text: messageText,
   };
 
-  return getAxiosInstance().post("sendMessage", data);
+  return getAxiosInstance()
+    .post("sendMessage", data)
+    .then((response) => {
+      console.log("Message sent successfully:", response.data);
+      return response.data;
+    })
+    .catch((error) => {
+      console.error("Error sending message:", error.message);
+      throw new Error("Failed to send message.");
+    });
 };
 
 const handleMessage = (messageObj) => {
