@@ -4,7 +4,7 @@
   "description": "bot",
   "main": "index.cjs",
   "scripts": {
-    "start": "nodemon app.js index.cjs"
+    "start": "node app.js index.cjs"
   },
   "author": "Ugo Chinemerem",
   "license": "ISC",
