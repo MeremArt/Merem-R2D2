@@ -24,7 +24,7 @@ const getCryptoNews = async (messageObj) => {
       const newsTitle = news.title;
       const newsLink = news.link;
 
-      const newsMessage = `Crypto News:\n${newsTitle}\n\nLink: ${newsLink}`;
+      const newsMessage = `News:\n${newsTitle}\n\nLink: ${newsLink}`;
       return sendMessage(messageObj, newsMessage);
     } else {
       throw new Error("No crypto news found.");
@@ -153,6 +153,8 @@ const handleMessage = (messageObj) => {
 💬 Motivation: Type "/motivation" for an inspiring quote.
 
 🌦️ Weather: "/weather" + city for forecasts.
+
+🌐 Stay informed with global news! Use "/news" to stay up-to-date. 📰
 `;
 
     console.log(botInformationString);
