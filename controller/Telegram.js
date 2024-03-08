@@ -4,6 +4,37 @@ const { getAxiosInstance } = require("./axios");
 require("dotenv").config();
 const axios = require("axios");
 
+const getCryptoNews = async (messageObj) => {
+  try {
+    const apiKey = "pub_396785e3cfba86a747a093039efd37715c578"; // Replace with your actual API key
+    const response = await axios.get("https://newsdata.io/api/1/news", {
+      params: {
+        apikey: apiKey,
+        q: "pegasus",
+        language: "en",
+      },
+    });
+
+    const data = response.data;
+
+    if (data && data.results && data.results.length > 0) {
+      const randomIndex = Math.floor(Math.random() * data.results.length);
+      const news = data.results[randomIndex];
+
+      const newsTitle = news.title;
+      const newsLink = news.link;
+
+      const newsMessage = `Crypto News:\n${newsTitle}\n\nLink: ${newsLink}`;
+      return sendMessage(messageObj, newsMessage);
+    } else {
+      throw new Error("No crypto news found.");
+    }
+  } catch (error) {
+    console.error("Error fetching crypto news:", error.message);
+    return sendMessage(messageObj, "Failed to fetch crypto news.");
+  }
+};
+
 const getCryptoPrices = async (messageObj) => {
   try {
     const response = await axios.get(
@@ -135,9 +166,8 @@ const handleMessage = (messageObj) => {
         return getMotivation(messageObj);
       case "price":
         return getCryptoPrices(messageObj);
-      // case "startgame":
-
-      //   return sendQuestion(messageObj.chat.id);
+      case "news":
+        return getCryptoNews(messageObj);
       default:
         return sendMessage(
           messageObj,
