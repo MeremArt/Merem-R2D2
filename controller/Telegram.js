@@ -1,4 +1,4 @@
-const { sendQuestion } = require("./game.js");
+// const { sendQuestion } = require("./game.js");
 const { getAxiosInstance } = require("./axios");
 
 require("dotenv").config();
@@ -135,9 +135,9 @@ const handleMessage = (messageObj) => {
         return getMotivation(messageObj);
       case "price":
         return getCryptoPrices(messageObj);
-      case "startgame":
-        // Call the sendQuestion function from the imported module
-        return sendQuestion(messageObj.chat.id);
+      // case "startgame":
+
+      //   return sendQuestion(messageObj.chat.id);
       default:
         return sendMessage(
           messageObj,
