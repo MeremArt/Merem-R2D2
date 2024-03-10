@@ -20,7 +20,7 @@ const checkServerHealth = () => {
     });
 };
 app.get("*", async (req, res) => {
-  console.log("chill");
+  res.send("chill");
 });
 app.post("*", async (req, res) => {
   try {
