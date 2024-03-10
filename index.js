@@ -19,7 +19,9 @@ const checkServerHealth = () => {
       console.error(`Error checking server health:`, error.message);
     });
 };
-
+app.get("*", async (req, res) => {
+  console.log("chill");
+});
 app.post("*", async (req, res) => {
   try {
     await handler(req, res);
