@@ -30,7 +30,7 @@ app.post("*", async (req, res) => {
   }
 });
 
-const interval = 50000;
+const interval = 2 * 60 * 1000;
 setInterval(checkServerHealth, interval);
 
 checkServerHealth();
