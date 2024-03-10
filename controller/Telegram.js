@@ -34,6 +34,32 @@ const getCryptoNews = async (messageObj) => {
     return sendMessage(messageObj, "Failed to fetch crypto news.");
   }
 };
+const precious = [
+  "You are loved",
+  "You are beautiful",
+  "You are worthy",
+  "You are capable",
+  "You are strong",
+  "You are enough",
+  "You are deserving of happiness",
+  "You are unique and special",
+  "You are resilient",
+  "You are a work of art",
+
+  // Add more affirmations as needed
+];
+
+const sendPrecious = async (messageObj) => {
+  try {
+    const randomIndex = Math.floor(Math.random() * precious.length);
+    const affirmation = precious[randomIndex];
+
+    return sendMessage(messageObj, affirmation);
+  } catch (error) {
+    console.error("Error fetching affirmation:", error.message);
+    return sendMessage(messageObj, "Failed to fetch affirmation.");
+  }
+};
 
 const getCryptoPrices = async (messageObj) => {
   try {
@@ -170,6 +196,8 @@ const handleMessage = (messageObj) => {
         return getCryptoPrices(messageObj);
       case "news":
         return getCryptoNews(messageObj);
+      case "myprecious":
+        return sendPrecious(messageObj);
       default:
         return sendMessage(
           messageObj,
