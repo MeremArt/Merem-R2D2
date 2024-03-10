@@ -8,6 +8,9 @@ require("dotenv").config();
 app.use(express.json());
 
 const serverUrl = `https://merem-r2d2.onrender.com`;
+app.get("*", async (req, res) => {
+  res.send("chill");
+});
 
 const checkServerHealth = () => {
   axios
@@ -19,9 +22,7 @@ const checkServerHealth = () => {
       console.error(`Error checking server health:`, error.message);
     });
 };
-app.get("*", async (req, res) => {
-  res.send("chill");
-});
+
 app.post("*", async (req, res) => {
   try {
     await handler(req, res);
