@@ -1,7 +1,7 @@
 const express = require("express");
 const app = express();
 const { handler } = require("./controller/index");
-const { PORT } = require("./constants");
+
 const axios = require("axios");
 require("dotenv").config();
 
@@ -34,6 +34,8 @@ const interval = 2 * 60 * 1000;
 setInterval(checkServerHealth, interval);
 
 checkServerHealth();
+
+const PORT = process.env.PORT;
 
 app.listen(PORT, () => {
   console.log(`Server is running at http://localhost:${PORT}`);
