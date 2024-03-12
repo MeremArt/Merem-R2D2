@@ -29,6 +29,7 @@ const shortenLink = async (longUrl, alias) => {
     throw new Error("Failed to shorten link.");
   }
 };
+
 const getCryptoNews = async (messageObj) => {
   try {
     const apiKey = "pub_396785e3cfba86a747a093039efd37715c578"; // Replace with your actual API key
@@ -198,10 +199,10 @@ const handleMessage = async (messageObj) => {
 
   if (messageText.startsWith("/shorten ")) {
     const commandTokens = messageText.split(" ");
-    const longUrl = commandTokens[1].trim(); // Extract the URL after "/shorten "
-    const alias = commandTokens[2] ? commandTokens[2].trim() : null; // Extract optional alias
+    const longUrl = commandTokens[1]?.trim(); // Extract the URL after "/shorten "
+    const alias = commandTokens[2]?.trim(); // Extract optional alias
 
-    if (longUrl === "") {
+    if (!longUrl) {
       return sendMessage(messageObj, "Please provide a valid URL to shorten.");
     }
 
@@ -212,7 +213,6 @@ const handleMessage = async (messageObj) => {
       return sendMessage(messageObj, "Failed to shorten the provided URL.");
     }
   }
-
   if (messageText.startsWith("/")) {
     const command = messageText.substr(1);
     const botInformationString = `
