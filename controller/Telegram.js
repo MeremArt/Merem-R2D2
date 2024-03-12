@@ -6,7 +6,7 @@ const axios = require("axios");
 
 const shortenLink = async (longUrl) => {
   try {
-    const uriBaeApiUrl = "https://urlbae.com/api/link";
+    const uriBaeApiUrl = "'https://urlbae.com/api/account'";
     const uriBaeAccessToken = "a900753a44ed9e972f525f765605c26a"; // Replace with your Uri Bae access token
 
     const response = await axios.post(
