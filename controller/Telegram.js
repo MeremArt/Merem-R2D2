@@ -196,7 +196,7 @@ const sendMessage = (messageObj, messageText) => {
 const handleMessage = async (messageObj) => {
   const messageText = messageObj?.text || "";
 
-  if (messageText.startsWith("/shorten ")) {
+  if (messageText.startsWith("@shorten ")) {
     const commandTokens = messageText.split(" ");
     const longUrl = commandTokens[1].trim(); // Extract the URL after "/shorten "
     const alias = commandTokens[2] ? commandTokens[2].trim() : null; // Extract optional alias
