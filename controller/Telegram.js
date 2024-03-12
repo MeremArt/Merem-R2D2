@@ -4,21 +4,23 @@ const { getAxiosInstance } = require("./axios");
 require("dotenv").config();
 const axios = require("axios");
 
-const shortenLink = async (longUrl) => {
+const shortenLink = async (longUrl, alias) => {
   try {
-    const uriBaeApiUrl = "'https://urlbae.com/api/account'";
+    const uriBaeApiUrl = "https://urlbae.com/api/url/add";
     const uriBaeAccessToken = "a900753a44ed9e972f525f765605c26a"; // Replace with your Uri Bae access token
 
-    const response = await axios.post(
-      uriBaeApiUrl,
-      { long_url: longUrl },
-      {
-        headers: {
-          Authorization: `Bearer ${uriBaeAccessToken}`,
-          "Content-Type": "application/json",
-        },
-      }
-    );
+    const payload = { long_url: longUrl };
+
+    if (alias) {
+      payload.custom = alias;
+    }
+
+    const response = await axios.post(uriBaeApiUrl, payload, {
+      headers: {
+        Authorization: `Bearer ${uriBaeAccessToken}`,
+        "Content-Type": "application/json",
+      },
+    });
 
     const shortUrl = response.data.data.link;
     return shortUrl;
@@ -27,7 +29,6 @@ const shortenLink = async (longUrl) => {
     throw new Error("Failed to shorten link.");
   }
 };
-
 const getCryptoNews = async (messageObj) => {
   try {
     const apiKey = "pub_396785e3cfba86a747a093039efd37715c578"; // Replace with your actual API key
@@ -196,13 +197,16 @@ const handleMessage = async (messageObj) => {
   const messageText = messageObj?.text || "";
 
   if (messageText.startsWith("/shorten ")) {
-    const longUrl = messageText.substr(9).trim(); // Extract the URL after "/shorten "
+    const commandTokens = messageText.split(" ");
+    const longUrl = commandTokens[1].trim(); // Extract the URL after "/shorten "
+    const alias = commandTokens[2] ? commandTokens[2].trim() : null; // Extract optional alias
+
     if (longUrl === "") {
       return sendMessage(messageObj, "Please provide a valid URL to shorten.");
     }
 
     try {
-      const shortUrl = await shortenLink(longUrl);
+      const shortUrl = await shortenLink(longUrl, alias);
       return sendMessage(messageObj, `Shortened URL: ${shortUrl}`);
     } catch (error) {
       return sendMessage(messageObj, "Failed to shorten the provided URL.");
@@ -236,8 +240,7 @@ const handleMessage = async (messageObj) => {
         return getCryptoNews(messageObj);
       case "myprecious":
         return sendPrecious(messageObj);
-      case "shorten":
-        return shortenLink(messageObj);
+
       default:
         return sendMessage(
           messageObj,
