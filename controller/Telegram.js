@@ -1,44 +1,28 @@
 // const { sendQuestion } = require("./game.js");
 const { getAxiosInstance } = require("./axios");
-
+const CC = require("currency-converter-lt");
 require("dotenv").config();
 const axios = require("axios");
-const convertCurrency = async (
-  messageObj,
-  fromCurrency = "USD", // Default from currency is USD
-  toCurrency = "NGN", // Default to currency is NGN
-  amount = 1 // Default amount is 1 unit
-) => {
+const convertCurrency = async (messageObj) => {
   try {
-    // Consider using a secure environment variable for the API key instead of hardcoding it
-    const apiKey = "ac68b524b3a59e2138fce0480b106139"; // Replace with process.env.EXCHANGERATE_API_KEY
-    if (!apiKey) {
-      throw new Error("Missing environment variable: EXCHANGERATE_API_KEY");
-    }
+    const fromCurrency = "USD";
+    const toCurrency = "NGN";
+    const amountToConvert = 1;
 
-    const response = await axios.get(
-      "https://api.exchangeratesapi.io/v1/convert",
-      {
-        params: {
-          access_key: apiKey,
-          from: fromCurrency,
-          to: toCurrency,
-          amount: amount,
-        },
-      }
+    const currencyConverter = new CC({
+      from: fromCurrency,
+      to: toCurrency,
+      amount: amountToConvert,
+    });
+
+    const response = await currencyConverter.convert();
+
+    console.log(
+      `${amountToConvert} ${fromCurrency} is equal to ${response} ${toCurrency}`
     );
-
-    const responseData = response.data;
-
-    if (responseData.success) {
-      const convertedAmount = responseData.result;
-      return sendMessage(
-        messageObj,
-        `${amount} ${fromCurrency} = ${convertedAmount} ${toCurrency}`
-      );
-    } else {
-      throw new Error("API response indicates conversion failure.");
-    }
+    return sendMessage(
+      `${amountToConvert} ${fromCurrency} is equal to ${response} ${toCurrency}`
+    );
   } catch (error) {
     console.error("Error converting currency:", error.message);
     return sendMessage(messageObj, "Failed to convert currency.");
