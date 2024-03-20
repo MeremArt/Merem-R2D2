@@ -11,7 +11,7 @@ const convertCurrency = async (
 ) => {
   try {
     // Consider using a secure environment variable for the API key instead of hardcoding it
-    const apiKey = process.env.RATE; // Replace with process.env.EXCHANGERATE_API_KEY
+    const apiKey = "ac68b524b3a59e2138fce0480b106139"; // Replace with process.env.EXCHANGERATE_API_KEY
     if (!apiKey) {
       throw new Error("Missing environment variable: EXCHANGERATE_API_KEY");
     }
