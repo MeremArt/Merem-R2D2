@@ -3,20 +3,51 @@ const { getAxiosInstance } = require("./axios");
 
 require("dotenv").config();
 const axios = require("axios");
+const convertCurrency = async (
+  messageObj,
+  fromCurrency = "USD", // Default from currency is USD
+  toCurrency = "NGN", // Default to currency is NGN
+  amount = 1 // Default amount is 1 unit
+) => {
+  try {
+    const apiKey = process.env.RATE; // Replace with your actual API key
+    const response = await axios.get(
+      "https://api.exchangeratesapi.io/v1/convert",
+      {
+        params: {
+          access_key: apiKey,
+          from: fromCurrency,
+          to: toCurrency,
+          amount: amount,
+        },
+      }
+    );
+
+    const responseData = response.data;
+
+    if (responseData.success) {
+      const convertedAmount = responseData.result;
+      return sendMessage(
+        messageObj,
+        `${amount} ${fromCurrency} = ${convertedAmount} ${toCurrency}`
+      );
+    } else {
+      throw new Error("Failed to convert currency.");
+    }
+  } catch (error) {
+    console.error("Error converting currency:", error.message);
+    return sendMessage(messageObj, "Failed to convert currency.");
+  }
+};
 
 const getExchangeRate = async (messageObj) => {
   try {
-    const apiKey = process.env.RATE; // Replace with your actual API key
-    const response = await axios.get("https://api.exchangeratesapi.io/latest", {
-      params: {
-        access_key: apiKey,
-        base: "USD",
-        symbols: "NGN",
-      },
-    });
+    const fromCurrency = "USD";
+    const toCurrency = "NGN";
+    const amount = 1; // Always convert 1 unit of the base currency (USD)
 
-    const exchangeRate = response.data.rates.NGN;
-    return sendMessage(messageObj, `1 USD = ${exchangeRate} NGN`);
+    // Call the convertCurrency function with the appropriate parameters
+    return convertCurrency(messageObj, fromCurrency, toCurrency, amount);
   } catch (error) {
     console.error("Error fetching exchange rate:", error.message);
     return sendMessage(messageObj, "Failed to fetch exchange rate.");
@@ -216,7 +247,7 @@ const handleMessage = async (messageObj) => {
       case "news":
         return getCryptoNews(messageObj);
       case "rate":
-        return getExchangeRate(messageObj);
+        return convertCurrency(messageObj);
 
       default:
         return sendMessage(
