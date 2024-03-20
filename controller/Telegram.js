@@ -10,7 +10,12 @@ const convertCurrency = async (
   amount = 1 // Default amount is 1 unit
 ) => {
   try {
-    const apiKey = "ac68b524b3a59e2138fce0480b106139"; // Replace with your actual API key
+    // Consider using a secure environment variable for the API key instead of hardcoding it
+    const apiKey = process.env.RATE; // Replace with process.env.EXCHANGERATE_API_KEY
+    if (!apiKey) {
+      throw new Error("Missing environment variable: EXCHANGERATE_API_KEY");
+    }
+
     const response = await axios.get(
       "https://api.exchangeratesapi.io/v1/convert",
       {
@@ -32,25 +37,11 @@ const convertCurrency = async (
         `${amount} ${fromCurrency} = ${convertedAmount} ${toCurrency}`
       );
     } else {
-      throw new Error("Failed to convert currency.");
+      throw new Error("API response indicates conversion failure.");
     }
   } catch (error) {
     console.error("Error converting currency:", error.message);
     return sendMessage(messageObj, "Failed to convert currency.");
-  }
-};
-
-const getExchangeRate = async (messageObj) => {
-  try {
-    const fromCurrency = "USD";
-    const toCurrency = "NGN";
-    const amount = 1; // Always convert 1 unit of the base currency (USD)
-
-    // Call the convertCurrency function with the appropriate parameters
-    return convertCurrency(messageObj, fromCurrency, toCurrency, amount);
-  } catch (error) {
-    console.error("Error fetching exchange rate:", error.message);
-    return sendMessage(messageObj, "Failed to fetch exchange rate.");
   }
 };
 
