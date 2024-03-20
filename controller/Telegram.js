@@ -17,15 +17,20 @@ const convertCurrency = async (messageObj) => {
 
     const response = await currencyConverter.convert();
 
-    console.log(
-      `${amountToConvert} ${fromCurrency} is equal to ${response} ${toCurrency}`
-    );
-    return sendMessage(
-      `${amountToConvert} ${fromCurrency} is equal to ${response} ${toCurrency}`
-    );
+    const conversionMessage = `${amountToConvert} ${fromCurrency} is equal to ${response} ${toCurrency}`;
+
+    console.log(conversionMessage);
+
+    await sendMessage(messageObj, conversionMessage);
+
+    return conversionMessage;
   } catch (error) {
     console.error("Error converting currency:", error.message);
-    return sendMessage(messageObj, "Failed to convert currency.");
+    const errorMessage = "Failed to convert currency.";
+
+    await sendMessage(messageObj, errorMessage);
+
+    return errorMessage;
   }
 };
 
