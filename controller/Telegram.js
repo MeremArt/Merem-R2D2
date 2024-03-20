@@ -75,7 +75,16 @@ const precious = [
   "You are unique and special",
   "You are resilient",
   "You are a work of art",
-
+  "You are intelligent",
+  "You are creative",
+  "You are filled with potential",
+  "You are blessed with abundance",
+  "You are surrounded by positivity",
+  "You are making a difference",
+  "You are admired for who you are",
+  "You are appreciated",
+  "You are on the path to success",
+  "You are a source of inspiration",
   // Add more affirmations as needed
 ];
 
@@ -228,6 +237,8 @@ const handleMessage = async (messageObj) => {
         return getCryptoPrices(messageObj);
       case "news":
         return getCryptoNews(messageObj);
+      case "preciousmylove":
+        return sendPrecious(messageObj);
       case "rate":
         return convertCurrency(messageObj);
 
