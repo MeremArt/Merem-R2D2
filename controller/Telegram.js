@@ -10,7 +10,7 @@ const convertCurrency = async (
   amount = 1 // Default amount is 1 unit
 ) => {
   try {
-    const apiKey = process.env.RATE; // Replace with your actual API key
+    const apiKey = "ac68b524b3a59e2138fce0480b106139"; // Replace with your actual API key
     const response = await axios.get(
       "https://api.exchangeratesapi.io/v1/convert",
       {
