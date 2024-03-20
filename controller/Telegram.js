@@ -4,29 +4,22 @@ const { getAxiosInstance } = require("./axios");
 require("dotenv").config();
 const axios = require("axios");
 
-const shortenLink = async (longUrl, alias) => {
+const getExchangeRate = async (messageObj) => {
   try {
-    const uriBaeApiUrl = "https://urlbae.com/api/url/add";
-    const uriBaeAccessToken = "a900753a44ed9e972f525f765605c26a"; // Replace with your Uri Bae access token
-
-    const payload = { long_url: longUrl };
-
-    if (alias) {
-      payload.custom = alias;
-    }
-
-    const response = await axios.post(uriBaeApiUrl, payload, {
-      headers: {
-        Authorization: `Bearer ${uriBaeAccessToken}`,
-        "Content-Type": "application/json",
+    const apiKey = process.env.RATE; // Replace with your actual API key
+    const response = await axios.get("https://api.exchangeratesapi.io/latest", {
+      params: {
+        access_key: apiKey,
+        base: "USD",
+        symbols: "NGN",
       },
     });
 
-    const shortUrl = response.data.data.link;
-    return shortUrl;
+    const exchangeRate = response.data.rates.NGN;
+    return sendMessage(messageObj, `1 USD = ${exchangeRate} NGN`);
   } catch (error) {
-    console.error("Error shortening link:", error.message);
-    throw new Error("Failed to shorten link.");
+    console.error("Error fetching exchange rate:", error.message);
+    return sendMessage(messageObj, "Failed to fetch exchange rate.");
   }
 };
 
@@ -197,22 +190,6 @@ const sendMessage = (messageObj, messageText) => {
 const handleMessage = async (messageObj) => {
   const messageText = messageObj?.text || "";
 
-  if (messageText.startsWith("/shorten ")) {
-    const commandTokens = messageText.split(" ");
-    const longUrl = commandTokens[1]?.trim(); // Extract the URL after "/shorten "
-    const alias = commandTokens[2]?.trim(); // Extract optional alias
-
-    if (!longUrl) {
-      return sendMessage(messageObj, "Please provide a valid URL to shorten.");
-    }
-
-    try {
-      const shortUrl = await shortenLink(longUrl, alias);
-      return sendMessage(messageObj, `Shortened URL: ${shortUrl}`);
-    } catch (error) {
-      return sendMessage(messageObj, "Failed to shorten the provided URL.");
-    }
-  }
   if (messageText.startsWith("/")) {
     const command = messageText.substr(1);
     const botInformationString = `
@@ -238,8 +215,8 @@ const handleMessage = async (messageObj) => {
         return getCryptoPrices(messageObj);
       case "news":
         return getCryptoNews(messageObj);
-      case "myprecious":
-        return sendPrecious(messageObj);
+      case "rate":
+        return getExchangeRate(messageObj);
 
       default:
         return sendMessage(
