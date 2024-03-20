@@ -17,7 +17,7 @@ const convertCurrency = async (messageObj) => {
 
     const response = await currencyConverter.convert();
 
-    const conversionMessage = `${amountToConvert} ${fromCurrency} is equal to ${response} ${toCurrency}`;
+    const conversionMessage = `${amountToConvert} ${fromCurrency} / ${response} ${toCurrency}`;
 
     console.log(conversionMessage);
 
@@ -211,6 +211,8 @@ const handleMessage = async (messageObj) => {
 🌦️ Weather: "/weather" + city for forecasts.
 
 🌐 Stay informed with global news! Use "/news" to stay up-to-date. 📰
+
+💱 Exchange Rate: Type "/rate" for the current exchange rate between USD and NGN.
 `;
 
     console.log(botInformationString);
