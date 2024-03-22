@@ -71,6 +71,7 @@ const precious = [
   "You are capable",
   "You are strong",
   "You are enough",
+  "call me already precious",
   "You are deserving of happiness",
   "You are unique and special",
   "You are resilient",
@@ -212,6 +213,10 @@ const handleMessage = async (messageObj) => {
 
   if (messageText.startsWith("/")) {
     const command = messageText.substr(1);
+    commandCount++; // Increment command count
+    console.log(
+      `Command received: ${command}. Total commands: ${commandCount}`
+    );
     const botInformationString = `
 🌐 Crypto Prices: Type "/price" to Get Bitcoin, Ethereum, and Solana prices.
 
@@ -245,7 +250,7 @@ const handleMessage = async (messageObj) => {
       default:
         return sendMessage(
           messageObj,
-          "Hey, I don't know that command. Try /start, /weather, /motivation, or /price."
+          "Hey, I don't know that command. Try /start, /weather, /motivation, /price or /rate."
         );
     }
   } else if (
