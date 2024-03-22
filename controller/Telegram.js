@@ -229,8 +229,6 @@ const handleMessage = async (messageObj) => {
 💱 Exchange Rate: Type "/rate" for the current exchange rate between USD and NGN.
 `;
 
-    console.log(botInformationString);
-
     switch (command.toLowerCase()) {
       case "start":
         return sendMessage(messageObj, botInformationString);
