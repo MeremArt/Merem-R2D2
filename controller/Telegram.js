@@ -207,7 +207,7 @@ const sendMessage = (messageObj, messageText) => {
       throw new Error("Failed to send message.");
     });
 };
-
+let commandCount = 0;
 const handleMessage = async (messageObj) => {
   const messageText = messageObj?.text || "";
 
