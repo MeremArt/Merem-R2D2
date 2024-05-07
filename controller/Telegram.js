@@ -5,8 +5,7 @@ const { Connection, LAMPORTS_PER_SOL, PublicKey } = require("@solana/web3.js");
 require("dotenv").config();
 const axios = require("axios");
 
-//solana wallet
-
+// Solana wallet
 let userWallets = {};
 
 const addUserWallet = (userId, walletAddress) => {
@@ -239,47 +238,25 @@ const sendMessage = (messageObj, messageText) => {
       throw new Error("Failed to send message.");
     });
 };
-let commandCount = 0;
+
 const handleMessage = async (messageObj) => {
-  const messageText = messageObj?.text || "";
-  const userId = messageObj?.from?.id;
-  if (!userId) {
-    console.error("Error: userId is empty or undefined", messageObj);
-    throw new Error("UserId is missing.");
-  }
-  if (messageText.startsWith("/")) {
-    const command = messageText.substr(1);
-    commandCount++; // Increment command count
-    console.log(
-      `Command received: ${command}. Total commands: ${commandCount}`
-    );
+  let commandCount = 0;
+  try {
+    const messageText = messageObj?.text || "";
+    const userId = messageObj?.from?.id; // Extract userId from messageObj
 
-    if (messageText.startsWith("/addwallet")) {
-      const walletAddress = messageText.split(" ")[1];
-      if (!walletAddress) {
-        return sendMessage(
-          messageObj,
-          "Please provide a valid wallet address."
-        );
-      }
-
-      addUserWallet(userId, walletAddress); // Add wallet address to userWallets
-      return sendMessage(messageObj, "Wallet address added successfully!");
+    if (!userId) {
+      console.error("Error: userId is empty or undefined", messageObj);
+      throw new Error("UserId is missing.");
     }
+    if (messageText.startsWith("/")) {
+      const command = messageText.substr(1);
+      commandCount++; // Increment command count
+      console.log(
+        `Command received: ${command}. Total commands: ${commandCount}`
+      );
 
-    if (messageText.startsWith("/walletamount")) {
-      try {
-        const walletAmount = await getWalletAmount(userId);
-        return sendMessage(
-          messageObj,
-          `Your wallet amount is ${walletAmount} SOL.`
-        );
-      } catch (error) {
-        console.error("Error fetching wallet amount:", error.message);
-        return sendMessage(messageObj, "Failed to fetch wallet amount.");
-      }
-    }
-    const botInformationString = `
+      const botInformationString = `
 🌐 Crypto Prices: Type "/price" to Get Bitcoin, Ethereum, and Solana prices.
 
 💬 Motivation: Type "/motivation" for an inspiring quote.
@@ -291,39 +268,62 @@ const handleMessage = async (messageObj) => {
 💱 Exchange Rate: Type "/rate" for the current exchange rate between USD and NGN.
 `;
 
-    switch (command.toLowerCase()) {
-      case "start":
-        return sendMessage(messageObj, botInformationString);
-      case "weather":
-        return getWeather(messageObj);
-      case "motivation":
-        return getMotivation(messageObj);
-      case "price":
-        return getCryptoPrices(messageObj);
-      case "news":
-        return getCryptoNews(messageObj);
-      case "preciousmylove":
-        return sendPrecious(messageObj);
-      case "rate":
-        return convertCurrency(messageObj);
-
-      default:
-        return sendMessage(
-          messageObj,
-          "Hey, I don't know that command. Try /start, /weather, /motivation, /price or /rate."
-        );
+      switch (command.toLowerCase()) {
+        case "start":
+          return sendMessage(messageObj, botInformationString);
+        case "weather":
+          return getWeather(messageObj);
+        case "motivation":
+          return getMotivation(messageObj);
+        case "price":
+          return getCryptoPrices(messageObj);
+        case "news":
+          return getCryptoNews(messageObj);
+        case "preciousmylove":
+          return sendPrecious(messageObj);
+        case "rate":
+          return convertCurrency(messageObj);
+        case "wallet": {
+          const walletAddress = messageText.split(" ")[1];
+          if (!walletAddress) {
+            return sendMessage(
+              messageObj,
+              "Please provide a valid wallet address."
+            );
+          }
+          addUserWallet(userId, walletAddress);
+          try {
+            const walletAmount = await getWalletAmount(userId);
+            return sendMessage(
+              messageObj,
+              `Your wallet amount is ${walletAmount} SOL.`
+            );
+          } catch (error) {
+            console.error("Error fetching wallet amount:", error.message);
+            return sendMessage(messageObj, "Failed to fetch wallet amount.");
+          }
+        }
+        default:
+          return sendMessage(
+            messageObj,
+            "Hey, I don't know that command. Try /start, /weather, /motivation, /price or /rate."
+          );
+      }
+    } else if (
+      messageText.toLowerCase() === "hi" ||
+      messageText.toLowerCase() === "hello"
+    ) {
+      // Check for variations of "hi" and "hello"
+      return sendMessage(
+        messageObj,
+        "Hey there, I'm Merem-R2D2, a bot created by Merem's-Lab"
+      );
+    } else {
+      return sendMessage(messageObj, messageText);
     }
-  } else if (
-    messageText.toLowerCase() === "hi" ||
-    messageText.toLowerCase() === "hello"
-  ) {
-    // Check for variations of "hi" and "hello"
-    return sendMessage(
-      messageObj,
-      "Hey there, I'm Merem-R2D2, a bot created by Merem's-Lab"
-    );
-  } else {
-    return sendMessage(messageObj, messageText);
+  } catch (error) {
+    console.error("Error handling message:", error.message);
+    return sendMessage(messageObj, "Failed to process your message.");
   }
 };
 
