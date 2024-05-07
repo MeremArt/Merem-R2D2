@@ -251,7 +251,7 @@ const handleMessage = async (messageObj) => {
     );
 
     if (messageText.startsWith("/addwallet")) {
-      const userId = messageObj?.from?.id;
+      const userId = messageObj?.from?.id; // Extract userId from messageObj
       const walletAddress = messageText.split(" ")[1];
       if (!userId || !walletAddress) {
         return sendMessage(
@@ -260,9 +260,10 @@ const handleMessage = async (messageObj) => {
         );
       }
 
-      addUserWallet(userId, walletAddress);
+      addUserWallet(userId, walletAddress); // Add wallet address to userWallets
       return sendMessage(messageObj, "Wallet address added successfully!");
     }
+
     if (messageText.startsWith("/walletamount")) {
       const userId = messageObj?.from?.id;
       try {
