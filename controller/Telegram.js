@@ -26,7 +26,7 @@ const getWalletAmount = async (userId) => {
     const publicKey = new PublicKey(walletAddress);
     const balanceInLamports = await connection.getBalance(publicKey);
     const balanceInSOL = balanceInLamports / LAMPORTS_PER_SOL;
-
+    console.log(`Wallet amount for userId ${userId}: ${balanceInSOL} SOL`);
     return balanceInSOL;
   } catch (error) {
     console.error("Error fetching wallet amount:", error.message);
@@ -298,6 +298,7 @@ const handleMessage = async (messageObj) => {
               messageObj,
               `Your wallet amount is ${walletAmount} SOL.`
             );
+            console.log("Your wallet amount is ${walletAmount} SOL.");
           } catch (error) {
             console.error("Error fetching wallet amount:", error.message);
             return sendMessage(messageObj, "Failed to fetch wallet amount.");
