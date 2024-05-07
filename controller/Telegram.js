@@ -242,7 +242,10 @@ const sendMessage = (messageObj, messageText) => {
 let commandCount = 0;
 const handleMessage = async (messageObj) => {
   const messageText = messageObj?.text || "";
-
+  if (!userId) {
+    console.error("Error: userId is empty or undefined", messageObj);
+    throw new Error("UserId is missing.");
+  }
   if (messageText.startsWith("/")) {
     const command = messageText.substr(1);
     commandCount++; // Increment command count
@@ -251,9 +254,8 @@ const handleMessage = async (messageObj) => {
     );
 
     if (messageText.startsWith("/addwallet")) {
-      const userId = messageObj?.from?.id; // Extract userId from messageObj
       const walletAddress = messageText.split(" ")[1];
-      if (!userId || !walletAddress) {
+      if (!walletAddress) {
         return sendMessage(
           messageObj,
           "Please provide a valid wallet address."
@@ -265,7 +267,6 @@ const handleMessage = async (messageObj) => {
     }
 
     if (messageText.startsWith("/walletamount")) {
-      const userId = messageObj?.from?.id;
       try {
         const walletAmount = await getWalletAmount(userId);
         return sendMessage(
@@ -273,6 +274,7 @@ const handleMessage = async (messageObj) => {
           `Your wallet amount is ${walletAmount} SOL.`
         );
       } catch (error) {
+        console.error("Error fetching wallet amount:", error.message);
         return sendMessage(messageObj, "Failed to fetch wallet amount.");
       }
     }
