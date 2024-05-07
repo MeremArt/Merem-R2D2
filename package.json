@@ -9,6 +9,7 @@
   "author": "Ugo Chinemerem",
   "license": "ISC",
   "dependencies": {
+    "@solana/web3.js": "^1.91.8",
     "axios": "^1.6.7",
     "currency-converter-lt": "^2.0.1",
     "dotenv": "^16.4.5",

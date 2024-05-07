@@ -1,8 +1,40 @@
 // const { sendQuestion } = require("./game.js");
 const { getAxiosInstance } = require("./axios");
 const CC = require("currency-converter-lt");
+const { Connection, LAMPORTS_PER_SOL, PublicKey } = require("@solana/web3.js");
 require("dotenv").config();
 const axios = require("axios");
+
+//solana wallet
+
+let userWallets = {};
+
+const addUserWallet = (userId, walletAddress) => {
+  userWallets[userId] = walletAddress;
+};
+
+const getWalletAmount = async (userId) => {
+  try {
+    const walletAddress = userWallets[userId];
+    if (!walletAddress) {
+      throw new Error("No wallet address found for the user.");
+    }
+
+    const connection = new Connection(
+      "https://api.mainnet-beta.solana.com",
+      "confirmed"
+    );
+    const publicKey = new PublicKey(walletAddress);
+    const balanceInLamports = await connection.getBalance(publicKey);
+    const balanceInSOL = balanceInLamports / LAMPORTS_PER_SOL;
+
+    return balanceInSOL;
+  } catch (error) {
+    console.error("Error fetching wallet amount:", error.message);
+    throw new Error("Failed to fetch wallet amount.");
+  }
+};
+
 const convertCurrency = async (messageObj) => {
   try {
     const fromCurrency = "USD";
@@ -217,6 +249,32 @@ const handleMessage = async (messageObj) => {
     console.log(
       `Command received: ${command}. Total commands: ${commandCount}`
     );
+
+    if (messageText.startsWith("/addwallet")) {
+      const userId = messageObj?.from?.id;
+      const walletAddress = messageText.split(" ")[1];
+      if (!userId || !walletAddress) {
+        return sendMessage(
+          messageObj,
+          "Please provide a valid wallet address."
+        );
+      }
+
+      addUserWallet(userId, walletAddress);
+      return sendMessage(messageObj, "Wallet address added successfully!");
+    }
+    if (messageText.startsWith("/walletamount")) {
+      const userId = messageObj?.from?.id;
+      try {
+        const walletAmount = await getWalletAmount(userId);
+        return sendMessage(
+          messageObj,
+          `Your wallet amount is ${walletAmount} SOL.`
+        );
+      } catch (error) {
+        return sendMessage(messageObj, "Failed to fetch wallet amount.");
+      }
+    }
     const botInformationString = `
 🌐 Crypto Prices: Type "/price" to Get Bitcoin, Ethereum, and Solana prices.
 
