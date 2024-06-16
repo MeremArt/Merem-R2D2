@@ -122,7 +122,7 @@ const merem = [
 
 const sendPrecious = async (messageObj) => {
   try {
-    const randomIndex = Math.floor(Math.random() * precious.length);
+    const randomIndex = Math.floor(Math.random() * merem.length);
     const affirmation = merem[randomIndex];
 
     return sendMessage(messageObj, affirmation);
