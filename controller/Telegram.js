@@ -95,14 +95,14 @@ const getCryptoNews = async (messageObj) => {
     return sendMessage(messageObj, "Failed to fetch crypto news.");
   }
 };
-const precious = [
+const merem = [
   "You are loved",
-  "You are beautiful",
+  "You are Capable",
   "You are worthy",
   "You are capable",
   "You are strong",
   "You are enough",
-  "call me already precious",
+  "Believe in yourself Chinemerem",
   "You are deserving of happiness",
   "You are unique and special",
   "You are resilient",
@@ -122,8 +122,8 @@ const precious = [
 
 const sendPrecious = async (messageObj) => {
   try {
-    const randomIndex = Math.floor(Math.random() * precious.length);
-    const affirmation = precious[randomIndex];
+    const randomIndex = Math.floor(Math.random() * merem.length);
+    const affirmation = merem[randomIndex];
 
     return sendMessage(messageObj, affirmation);
   } catch (error) {
@@ -279,7 +279,7 @@ const handleMessage = async (messageObj) => {
           return getCryptoPrices(messageObj);
         case "news":
           return getCryptoNews(messageObj);
-        case "preciousmylove":
+        case "affirmations":
           return sendPrecious(messageObj);
         case "rate":
           return convertCurrency(messageObj);
