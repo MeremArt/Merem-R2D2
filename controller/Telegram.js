@@ -670,6 +670,194 @@ const generateChallengeWithClaude = async () => {
   }
 };
 
+const extractTextFromImage = async (imageBuffer) => {
+  try {
+    const apiKey = process.env.OCR_SPACE_API_KEY;
+
+    // Fallback API key for testing (limited requests)
+    const fallbackKey = "helloworld"; // OCR.space provides this for testing
+
+    const FormData = require("form-data");
+    const form = new FormData();
+
+    form.append("file", imageBuffer, {
+      filename: "image.jpg",
+      contentType: "image/jpeg",
+    });
+    form.append("apikey", apiKey || fallbackKey);
+    form.append("language", "eng");
+    form.append("detectOrientation", "true");
+    form.append("scale", "true");
+
+    console.log("🔍 Processing image with OCR...");
+
+    const response = await axios.post(
+      "https://api.ocr.space/parse/image",
+      form,
+      {
+        headers: {
+          ...form.getHeaders(),
+        },
+        timeout: 15000,
+      }
+    );
+
+    if (
+      response.data.OCRExitCode === 1 &&
+      response.data.ParsedResults?.length > 0
+    ) {
+      const result = response.data.ParsedResults[0];
+
+      if (result.ParsedText && result.ParsedText.trim().length > 0) {
+        return {
+          text: result.ParsedText.trim(),
+          success: true,
+        };
+      }
+    }
+
+    return { success: false, text: null };
+  } catch (error) {
+    console.error("OCR error:", error.message);
+    return { success: false, text: null };
+  }
+};
+
+const downloadTelegramFile = async (fileId) => {
+  try {
+    const token = process.env.TELEGRAM_BOT_TOKEN;
+
+    // Get file info
+    const fileInfo = await axios.get(
+      `https://api.telegram.org/bot${token}/getFile?file_id=${fileId}`,
+      {
+        timeout: 5000,
+      }
+    );
+
+    if (!fileInfo.data.ok) {
+      throw new Error("Failed to get file info");
+    }
+
+    const filePath = fileInfo.data.result.file_path;
+
+    // Download file
+    const fileResponse = await axios.get(
+      `https://api.telegram.org/file/bot${token}/${filePath}`,
+      {
+        responseType: "arraybuffer",
+        timeout: 10000,
+      }
+    );
+
+    return Buffer.from(fileResponse.data);
+  } catch (error) {
+    console.error("Error downloading file:", error.message);
+    return null;
+  }
+};
+
+const handlePhotoMessage = async (messageObj) => {
+  try {
+    const photos = messageObj.photo;
+    if (!photos || photos.length === 0) {
+      return sendMessage(messageObj, "❌ No photo found in message.");
+    }
+
+    // Get the highest resolution photo
+    const photo = photos[photos.length - 1];
+
+    // Send processing message
+    await sendMessage(
+      messageObj,
+      "🔍 Extracting text from image... Please wait a moment."
+    );
+
+    // Download the image
+    const imageBuffer = await downloadTelegramFile(photo.file_id);
+
+    if (!imageBuffer) {
+      return sendMessage(
+        messageObj,
+        "❌ Failed to download image. Please try again."
+      );
+    }
+
+    // Extract text from image
+    const ocrResult = await extractTextFromImage(imageBuffer);
+
+    if (ocrResult.success && ocrResult.text) {
+      // Clean up the text
+      const cleanText = ocrResult.text
+        .replace(/\r\n/g, "\n")
+        .replace(/\n\s*\n/g, "\n")
+        .trim();
+
+      if (cleanText.length > 0) {
+        let responseMessage = `📝 Extracted Text:\n\n${cleanText}`;
+
+        // If text is too long for one message, split it
+        if (responseMessage.length > 4000) {
+          const maxLength = 3800;
+          const textParts = [];
+          let currentPart = "";
+
+          const lines = cleanText.split("\n");
+          for (const line of lines) {
+            if ((currentPart + line + "\n").length > maxLength) {
+              if (currentPart) {
+                textParts.push(currentPart.trim());
+                currentPart = line + "\n";
+              } else {
+                // Line too long, split it
+                textParts.push(line.substring(0, maxLength));
+                currentPart = line.substring(maxLength) + "\n";
+              }
+            } else {
+              currentPart += line + "\n";
+            }
+          }
+
+          if (currentPart) {
+            textParts.push(currentPart.trim());
+          }
+
+          // Send parts
+          for (let i = 0; i < textParts.length; i++) {
+            const partMessage = `📝 Extracted Text (Part ${i + 1}/${
+              textParts.length
+            }):\n\n${textParts[i]}`;
+            await sendMessage(messageObj, partMessage);
+
+            // Small delay between messages
+            if (i < textParts.length - 1) {
+              await new Promise((resolve) => setTimeout(resolve, 500));
+            }
+          }
+        } else {
+          await sendMessage(messageObj, responseMessage);
+        }
+      } else {
+        await sendMessage(
+          messageObj,
+          "❌ No readable text found in the image. Please try with a clearer image."
+        );
+      }
+    } else {
+      await sendMessage(
+        messageObj,
+        "❌ Could not extract text from the image. Please make sure:\n\n• The image contains clear, readable text\n• The text is not too small\n• The image has good contrast\n• Try taking a clearer photo"
+      );
+    }
+  } catch (error) {
+    console.error("Error processing photo:", error);
+    await sendMessage(
+      messageObj,
+      "❌ Failed to process image. Please try again later."
+    );
+  }
+};
+
 const getDailyChallenge = async (messageObj) => {
   try {
     console.log("🔍 Generating daily challenge...");
@@ -890,6 +1078,10 @@ const handleMessage = async (messageObj) => {
       console.error("Error: userId is empty or undefined", messageObj);
       throw new Error("UserId is missing.");
     }
+    if (messageObj.photo && messageObj.photo.length > 0) {
+      return handlePhotoMessage(messageObj);
+    }
+
     if (messageText.startsWith("/")) {
       const command = messageText.substr(1);
       commandCount++; // Increment command count
@@ -898,17 +1090,20 @@ const handleMessage = async (messageObj) => {
       );
 
       const botInformationString = `
-🌐 Crypto Prices: Type "/price" to Get Bitcoin, Ethereum, and Solana prices.
+💰 /price - Get Bitcoin, Ethereum, and Solana prices
+💪 /motivation - Get an inspiring AI quote
+🌤️ /weather [city] - Get weather forecast
+📰 /news - Get latest crypto news
+✨ /affirmations - Get personal AI affirmations
+💱 /rate [amount] - Get USD to NGN exchange rate
+🏦 /wallet [address] - Add and check Solana wallet balance
+🤯 /fact - Get a fascinating AI-generated fun fact
+🎯 /challenge - Get your personalized daily challenge
+📸 /ocr - Extract text from images
 
-💬 Motivation: Type "/motivation" for an inspiring quote.
+📷 NEW: Send me any image with text and I'll extract it automatically!
 
-🌦️ Weather: "/weather" + city for forecasts.
-
-🌐 Stay informed with global news! Use "/news" to stay up-to-date. 📰
-
-🤯 /fact - Get a fascinating R2D2-generated fun fact
-
-💱 Exchange Rate: Type "/rate" for the current exchange rate between USD and NGN.
+Type any command to get started! 🚀
 `;
 
       switch (command.toLowerCase()) {
@@ -922,14 +1117,21 @@ const handleMessage = async (messageObj) => {
           return getCryptoPrices(messageObj);
         case "news":
           return getCryptoNews(messageObj);
-        case "challenges":
+        case "challenge":
           return getDailyChallenge(messageObj);
         case "affirmations":
           return sendPrecious(messageObj);
         case "rate":
           return convertCurrency(messageObj);
-        case "facts":
+        case "fact":
           return getRandomFact(messageObj);
+        case "ocr":
+        case "text":
+        case "extract":
+          return sendMessage(
+            messageObj,
+            "📸 OCR (Text Extraction)\n\nSend me any image containing text and I'll extract it for you!\n\n✅ Supported:\n• Documents, screenshots\n• Signs, handwritten notes\n• Books, articles, forms\n• Multiple languages\n\n📷 Just send the image directly - no command needed!"
+          );
         case "wallet": {
           const walletAddress = messageText.split(" ")[1];
           if (!walletAddress) {
