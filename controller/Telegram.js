@@ -331,18 +331,96 @@ const getCryptoPrices = async (messageObj) => {
     return sendMessage(messageObj, errorMessage);
   }
 };
+const getMotivationSimple = async (messageObj) => {
+  try {
+    const motivationalQuotes = [
+      '"Success is not final, failure is not fatal: it is the courage to continue that counts." - Winston Churchill',
+      '"The way to get started is to quit talking and begin doing." - Walt Disney',
+      '"Your limitation—it\'s only your imagination." - Anonymous',
+      '"Great things never come from comfort zones." - Anonymous',
+      '"Dream it. Wish it. Do it." - Anonymous',
+      '"Success doesn\'t just find you. You have to go out and get it." - Anonymous',
+      '"The harder you work for something, the greater you\'ll feel when you achieve it." - Anonymous',
+      "\"Don't stop when you're tired. Stop when you're done.\" - Anonymous",
+      '"Wake up with determination. Go to bed with satisfaction." - Anonymous',
+      '"Do something today that your future self will thank you for." - Anonymous',
+      '"Believe you can and you\'re halfway there." - Theodore Roosevelt',
+      '"The only way to do great work is to love what you do." - Steve Jobs',
+      '"Innovation distinguishes between a leader and a follower." - Steve Jobs',
+      '"Life is what happens to you while you\'re busy making other plans." - John Lennon',
+      '"The future belongs to those who believe in the beauty of their dreams." - Eleanor Roosevelt',
+      '"It is during our darkest moments that we must focus to see the light." - Aristotle',
+      '"The only impossible journey is the one you never begin." - Tony Robbins',
+      '"In the middle of difficulty lies opportunity." - Albert Einstein',
+      '"You miss 100% of the shots you don\'t take." - Wayne Gretzky',
+      "\"Whether you think you can or you think you can't, you're right.\" - Henry Ford",
+      '"The best time to plant a tree was 20 years ago. The second best time is now." - Chinese Proverb',
+      "\"Your time is limited, don't waste it living someone else's life.\" - Steve Jobs",
+      '"The only person you are destined to become is the person you decide to be." - Ralph Waldo Emerson',
+      '"Success is walking from failure to failure with no loss of enthusiasm." - Winston Churchill',
+      '"Don\'t let yesterday take up too much of today." - Will Rogers',
+      '"The secret of getting ahead is getting started." - Mark Twain',
+      '"It always seems impossible until it\'s done." - Nelson Mandela',
+      '"Don\'t watch the clock; do what it does. Keep going." - Sam Levenson',
+      '"A year from now you may wish you had started today." - Karen Lamb',
+      '"You are never too old to set another goal or to dream a new dream." - C.S. Lewis',
+    ];
+
+    // Use crypto.getRandomValues if available, otherwise use Math.random with timestamp
+    let randomIndex;
+    if (typeof crypto !== "undefined" && crypto.getRandomValues) {
+      const array = new Uint32Array(1);
+      crypto.getRandomValues(array);
+      randomIndex = array[0] % motivationalQuotes.length;
+    } else {
+      // Multiple sources of randomness
+      const now = Date.now();
+      const random1 = Math.random();
+      const random2 = Math.random();
+      const seed = (now * random1 * random2) % motivationalQuotes.length;
+      randomIndex = Math.floor(seed);
+    }
+
+    const selectedQuote = motivationalQuotes[randomIndex];
+
+    // Log for debugging
+    console.log(
+      `🎯 Selected quote index: ${randomIndex} of ${motivationalQuotes.length}`
+    );
+    console.log(`📝 Quote preview: ${selectedQuote.substring(0, 30)}...`);
+
+    return sendMessage(messageObj, `💪 Daily Motivation:\n\n${selectedQuote}`);
+  } catch (error) {
+    console.error("Error in simple motivation:", error.message);
+    return sendMessage(
+      messageObj,
+      "❌ Failed to get motivation quote. Please try again."
+    );
+  }
+};
 const getMotivation = async (messageObj) => {
   try {
+    console.log("🎯 Starting motivation request...");
+
     // Try Gemini API first for a fresh quote
     const geminiQuote = await generateMotivationalQuoteWithGemini();
-    if (geminiQuote && !geminiQuote.includes("Theodore Roosevelt")) {
+    console.log("🤖 Gemini response:", geminiQuote ? "Success" : "Failed");
+
+    if (
+      geminiQuote &&
+      !geminiQuote.includes("Theodore Roosevelt") &&
+      geminiQuote.length > 10
+    ) {
+      console.log("✅ Using Gemini AI quote");
       return sendMessage(
         messageObj,
-        `💪 R2D2 Motivation Quote:\n\n${geminiQuote}`
+        `💪 AI Motivation Quote:\n\n${geminiQuote}`
       );
     }
 
-    // If AI fails, use ONE random fallback quote
+    console.log("⚠️ Gemini failed, using fallback quotes");
+
+    // Enhanced fallback quotes with better randomization
     const fallbackQuotes = [
       '"Success is not final, failure is not fatal: it is the courage to continue that counts." - Winston Churchill',
       '"The way to get started is to quit talking and begin doing." - Walt Disney',
@@ -359,19 +437,39 @@ const getMotivation = async (messageObj) => {
       '"Innovation distinguishes between a leader and a follower." - Steve Jobs',
       '"Life is what happens to you while you\'re busy making other plans." - John Lennon',
       '"The future belongs to those who believe in the beauty of their dreams." - Eleanor Roosevelt',
+      '"It is during our darkest moments that we must focus to see the light." - Aristotle',
+      '"The only impossible journey is the one you never begin." - Tony Robbins',
+      '"In the middle of difficulty lies opportunity." - Albert Einstein',
+      '"You miss 100% of the shots you don\'t take." - Wayne Gretzky',
+      "\"Whether you think you can or you think you can't, you're right.\" - Henry Ford",
+      '"The best time to plant a tree was 20 years ago. The second best time is now." - Chinese Proverb',
+      "\"Your time is limited, don't waste it living someone else's life.\" - Steve Jobs",
+      '"The only person you are destined to become is the person you decide to be." - Ralph Waldo Emerson',
+      '"Success is walking from failure to failure with no loss of enthusiasm." - Winston Churchill',
+      '"Don\'t let yesterday take up too much of today." - Will Rogers',
     ];
 
-    // Get ONE random quote
-    const randomIndex = Math.floor(Math.random() * fallbackQuotes.length);
-    const quote = fallbackQuotes[randomIndex];
+    // Better randomization using multiple methods
+    const timestamp = Date.now();
+    const randomSeed = Math.random() * timestamp;
+    const randomIndex = Math.floor(randomSeed % fallbackQuotes.length);
 
-    return sendMessage(messageObj, `💪 Motivation Quote:\n\n${quote}`);
-  } catch (error) {
-    console.error("Error getting motivation:", error.message);
-    return sendMessage(
-      messageObj,
-      "❌ Failed to get motivation quote. Please try again."
+    console.log(
+      `🎲 Random selection: index ${randomIndex} of ${fallbackQuotes.length} quotes`
     );
+
+    const selectedQuote = fallbackQuotes[randomIndex];
+    console.log(`📝 Selected quote: ${selectedQuote.substring(0, 50)}...`);
+
+    return sendMessage(messageObj, `💪 Motivation Quote:\n\n${selectedQuote}`);
+  } catch (error) {
+    console.error("❌ Error getting motivation:", error.message);
+    console.error("Error stack:", error.stack);
+
+    // Emergency fallback quote
+    const emergencyQuote =
+      '"The only impossible journey is the one you never begin." - Tony Robbins';
+    return sendMessage(messageObj, `💪 Motivation Quote:\n\n${emergencyQuote}`);
   }
 };
 
@@ -518,7 +616,7 @@ const handleMessage = async (messageObj) => {
         case "weather":
           return getWeather(messageObj);
         case "motivation":
-          return getMotivation(messageObj);
+          return getMotivationSimple(messageObj);
         case "price":
           return getCryptoPrices(messageObj);
         case "news":
