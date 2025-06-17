@@ -613,6 +613,214 @@ const generateMotivationalQuoteWithGemini = async () => {
   }
 };
 
+const generateChallengeWithClaude = async () => {
+  try {
+    const claudeApiKey = process.env.ANTHROPIC_API_KEY;
+
+    if (!claudeApiKey) {
+      console.log("No Claude API key found for challenges");
+      return null;
+    }
+
+    const challengeTypes = [
+      "physical wellness and exercise",
+      "mental health and mindfulness",
+      "personal growth and learning",
+      "social connection and relationships",
+      "creativity and self-expression",
+      "productivity and organization",
+      "healthy habits and nutrition",
+      "environmental consciousness",
+      "gratitude and positivity",
+      "skill development",
+    ];
+
+    const randomType =
+      challengeTypes[Math.floor(Math.random() * challengeTypes.length)];
+
+    const response = await axios.post(
+      "https://api.anthropic.com/v1/messages",
+      {
+        model: "claude-3-haiku-20240307",
+        max_tokens: 150,
+        messages: [
+          {
+            role: "user",
+            content: `Generate one specific, actionable daily challenge focused on ${randomType}. Make it achievable in 15-30 minutes for someone with a busy schedule. Include a relevant emoji at the start. Keep it motivating and specific. Format: "[emoji] [challenge description]"`,
+          },
+        ],
+      },
+      {
+        headers: {
+          "x-api-key": claudeApiKey,
+          "Content-Type": "application/json",
+          "anthropic-version": "2023-06-01",
+        },
+        timeout: 8000,
+      }
+    );
+
+    if (response.data?.content?.[0]?.text) {
+      return response.data.content[0].text.trim();
+    }
+
+    return null;
+  } catch (error) {
+    console.error("Error generating challenge with Claude:", error.message);
+    return null;
+  }
+};
+
+const getDailyChallenge = async (messageObj) => {
+  try {
+    console.log("🔍 Generating daily challenge...");
+
+    // Try Claude AI first
+    const aiChallenge = await generateChallengeWithClaude();
+    if (aiChallenge && aiChallenge.length > 20) {
+      console.log("✅ Using Claude AI challenge");
+
+      const encouragements = [
+        "You've got this! 💪",
+        "Small steps, big results! 🌟",
+        "Today is your day! ✨",
+        "Challenge accepted? 🚀",
+        "Make it happen! 🔥",
+        "You're amazing! 🌈",
+        "Let's do this! ⭐",
+        "You're unstoppable! 🎯",
+        "Time to shine! 💫",
+        "Believe in yourself! 🦋",
+      ];
+
+      const randomEncouragement =
+        encouragements[Math.floor(Math.random() * encouragements.length)];
+
+      return sendMessage(
+        messageObj,
+        `🎯 AI Daily Challenge:\n\n${aiChallenge}\n\n${randomEncouragement}\n\n✅ Reply 'done' when completed!`
+      );
+    }
+
+    console.log("⚠️ Claude failed, using fallback challenges");
+
+    // Fallback to curated challenges
+    const fallbackChallenges = [
+      "💪 Do 15 push-ups or modified push-ups",
+      "🚶‍♂️ Take a 20-minute walk outside and enjoy nature",
+      "📚 Read for 30 minutes - could be a book, article, or news",
+      "💧 Drink 8 glasses of water throughout the day",
+      "📱 Call or text someone you haven't spoken to in a while",
+      "🧘‍♀️ Meditate or practice deep breathing for 10 minutes",
+      "📝 Write down 5 things you're grateful for today",
+      "🎨 Do something creative for 15 minutes (draw, write, craft)",
+      "😊 Give someone a genuine compliment",
+      "🌱 Learn one new fact or skill today",
+      "🎵 Listen to music that makes you happy for 20 minutes",
+      "🧹 Organize one area of your living space",
+      "🌮 Try a new healthy recipe or food",
+      "📸 Take photos of 3 beautiful things you notice today",
+      "💌 Write a thank you note to someone who helped you",
+    ];
+
+    const randomIndex = Math.floor(Math.random() * fallbackChallenges.length);
+    const selectedChallenge = fallbackChallenges[randomIndex];
+
+    const encouragements = [
+      "You've got this! 💪",
+      "Small steps, big results! 🌟",
+      "Today is your day! ✨",
+      "Challenge accepted? 🚀",
+      "Make it happen! 🔥",
+    ];
+
+    const randomEncouragement =
+      encouragements[Math.floor(Math.random() * encouragements.length)];
+
+    return sendMessage(
+      messageObj,
+      `🎯 Today's Challenge:\n\n${selectedChallenge}\n\n${randomEncouragement}\n\n✅ Reply 'done' when completed!`
+    );
+  } catch (error) {
+    console.error("Error getting daily challenge:", error.message);
+    return sendMessage(
+      messageObj,
+      "❌ Failed to get daily challenge. Please try again!"
+    );
+  }
+};
+
+const celebrateChallenge = async (messageObj) => {
+  try {
+    // Try to generate AI celebration
+    const claudeApiKey = process.env.ANTHROPIC_API_KEY;
+
+    if (claudeApiKey) {
+      try {
+        const response = await axios.post(
+          "https://api.anthropic.com/v1/messages",
+          {
+            model: "claude-3-haiku-20240307",
+            max_tokens: 100,
+            messages: [
+              {
+                role: "user",
+                content:
+                  "Generate a short, enthusiastic celebration message for someone who just completed a daily challenge. Include emojis and be encouraging. Keep it under 50 words.",
+              },
+            ],
+          },
+          {
+            headers: {
+              "x-api-key": claudeApiKey,
+              "Content-Type": "application/json",
+              "anthropic-version": "2023-06-01",
+            },
+            timeout: 5000,
+          }
+        );
+
+        if (response.data?.content?.[0]?.text) {
+          const aiCelebration = response.data.content[0].text.trim();
+          return sendMessage(
+            messageObj,
+            `${aiCelebration}\n\nReady for tomorrow's challenge? 🎯`
+          );
+        }
+      } catch (error) {
+        console.log("AI celebration failed, using fallback");
+      }
+    }
+
+    // Fallback celebrations
+    const celebrations = [
+      "🎉 Amazing work! You crushed that challenge!",
+      "✨ Fantastic! You're building great habits!",
+      "🌟 Well done! Every small step counts!",
+      "🚀 Incredible! You're on fire today!",
+      "💪 Yes! That's the spirit we love to see!",
+      "🏆 Outstanding! You're a challenge champion!",
+      "🎊 Brilliant! Keep up the momentum!",
+      "⭐ Excellent! You're investing in yourself!",
+      "🔥 Awesome! You turned intention into action!",
+      "🌈 Perfect! You're creating positive change!",
+    ];
+
+    const randomCelebration =
+      celebrations[Math.floor(Math.random() * celebrations.length)];
+    return sendMessage(
+      messageObj,
+      `${randomCelebration}\n\nReady for tomorrow's challenge? 🎯`
+    );
+  } catch (error) {
+    console.error("Error in celebration:", error.message);
+    return sendMessage(
+      messageObj,
+      "🎉 Great job completing your challenge! Ready for the next one? 🎯"
+    );
+  }
+};
+
 const getWeather = async (messageObj) => {
   const apiKey = process.env.WEATHER_API;
   const chat_id = messageObj?.chat?.id;
@@ -716,6 +924,8 @@ const handleMessage = async (messageObj) => {
           return getCryptoPrices(messageObj);
         case "news":
           return getCryptoNews(messageObj);
+        case "challenges":
+          return getDailyChallenge(messageObj);
         case "affirmations":
           return sendPrecious(messageObj);
         case "rate":
