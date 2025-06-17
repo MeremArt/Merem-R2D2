@@ -253,7 +253,7 @@ const handleMessage = async (messageObj) => {
   let commandCount = 0;
   try {
     const messageText = messageObj?.text || "";
-    const userId = messageObj?.from?.id; // Extract userId from messageObj
+    const userId = messageObj?.from?.id;
 
     if (!userId) {
       console.error("Error: userId is empty or undefined", messageObj);
