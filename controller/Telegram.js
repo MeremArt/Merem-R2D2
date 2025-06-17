@@ -725,7 +725,7 @@ const extractTextFromImage = async (imageBuffer) => {
 
 const downloadTelegramFile = async (fileId) => {
   try {
-    const token = process.env.TELEGRAM_BOT_TOKEN;
+    const token = process.env.MY_TOKEN;
 
     // Get file info
     const fileInfo = await axios.get(
