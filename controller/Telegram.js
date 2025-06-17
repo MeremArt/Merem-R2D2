@@ -219,7 +219,7 @@ const sendPrecious = async (messageObj) => {
     if (aiAffirmation) {
       return sendMessage(
         messageObj,
-        `✨ AI Personal Affirmation ✨\n\n${aiAffirmation}`
+        `✨ R2D2 Personal Affirmation ✨\n\n${aiAffirmation}`
       );
     }
 
@@ -281,15 +281,16 @@ const getCryptoPrices = async (messageObj) => {
 };
 const getMotivation = async (messageObj) => {
   try {
-    let motivationMessage = "💪 Daily Motivation:\n\n";
-
-    // Try Gemini API first
+    // Try Gemini API first for a fresh quote
     const geminiQuote = await generateMotivationalQuoteWithGemini();
     if (geminiQuote && !geminiQuote.includes("Theodore Roosevelt")) {
-      motivationMessage += `🤖 AI Generated:\n${geminiQuote}\n\n`;
+      return sendMessage(
+        messageObj,
+        `💪 R2D2 Motivation Quote:\n\n${geminiQuote}`
+      );
     }
 
-    // Add 2-3 random fallback quotes
+    // If AI fails, use ONE random fallback quote
     const fallbackQuotes = [
       '"Success is not final, failure is not fatal: it is the courage to continue that counts." - Winston Churchill',
       '"The way to get started is to quit talking and begin doing." - Walt Disney',
@@ -301,33 +302,24 @@ const getMotivation = async (messageObj) => {
       "\"Don't stop when you're tired. Stop when you're done.\" - Anonymous",
       '"Wake up with determination. Go to bed with satisfaction." - Anonymous',
       '"Do something today that your future self will thank you for." - Anonymous',
+      '"Believe you can and you\'re halfway there." - Theodore Roosevelt',
+      '"The only way to do great work is to love what you do." - Steve Jobs',
+      '"Innovation distinguishes between a leader and a follower." - Steve Jobs',
+      '"Life is what happens to you while you\'re busy making other plans." - John Lennon',
+      '"The future belongs to those who believe in the beauty of their dreams." - Eleanor Roosevelt',
     ];
 
-    // Get 2-3 random unique quotes
-    const numberOfQuotes = 3;
-    const selectedQuotes = [];
-    const usedIndices = new Set();
+    // Get ONE random quote
+    const randomIndex = Math.floor(Math.random() * fallbackQuotes.length);
+    const quote = fallbackQuotes[randomIndex];
 
-    while (
-      selectedQuotes.length < numberOfQuotes &&
-      selectedQuotes.length < fallbackQuotes.length
-    ) {
-      const randomIndex = Math.floor(Math.random() * fallbackQuotes.length);
-      if (!usedIndices.has(randomIndex)) {
-        usedIndices.add(randomIndex);
-        selectedQuotes.push(fallbackQuotes[randomIndex]);
-      }
-    }
-
-    // Add numbered quotes to message
-    selectedQuotes.forEach((quote, index) => {
-      motivationMessage += `${index + 1}. ${quote}\n\n`;
-    });
-
-    return sendMessage(messageObj, motivationMessage.trim());
+    return sendMessage(messageObj, `💪 Motivation Quote:\n\n${quote}`);
   } catch (error) {
     console.error("Error getting motivation:", error.message);
-    return sendMessage(messageObj, "❌ Failed to get motivation quotes.");
+    return sendMessage(
+      messageObj,
+      "❌ Failed to get motivation quote. Please try again."
+    );
   }
 };
 
