@@ -47,7 +47,7 @@ app.post("/webhook", async (req, res) => {
 // ✅ FIXED: Webhook setup function
 const setupWebhook = async () => {
   try {
-    const token = process.env.TELEGRAM_BOT_TOKEN;
+    const token = process.env.MY_TOKEN;
     if (!token) {
       console.log("⚠️ No TELEGRAM_BOT_TOKEN found");
       return;
