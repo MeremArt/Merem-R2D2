@@ -1078,18 +1078,31 @@ const handleMessage = async (messageObj) => {
       console.error("Error: userId is empty or undefined", messageObj);
       throw new Error("UserId is missing.");
     }
+
+    // ✅ Check if message contains a photo (OCR)
     if (messageObj.photo && messageObj.photo.length > 0) {
       return handlePhotoMessage(messageObj);
     }
 
+    // ✅ ADDED: Check for challenge completion
+    if (
+      messageText.toLowerCase() === "done" ||
+      messageText.toLowerCase() === "completed"
+    ) {
+      return celebrateChallenge(messageObj);
+    }
+
     if (messageText.startsWith("/")) {
-      const command = messageText.substr(1);
-      commandCount++; // Increment command count
+      const command = messageText.substr(1).split(" ")[0]; // Get just the command part
+      commandCount++;
       console.log(
         `Command received: ${command}. Total commands: ${commandCount}`
       );
 
-      const botInformationString = `
+      // ✅ FIXED: Added proper header
+      const botInformationString = `🤖 Welcome to Merem-R2D2 Bot!
+
+Available Commands:
 💰 /price - Get Bitcoin, Ethereum, and Solana prices
 💪 /motivation - Get an inspiring AI quote
 🌤️ /weather [city] - Get weather forecast
@@ -1103,28 +1116,36 @@ const handleMessage = async (messageObj) => {
 
 📷 NEW: Send me any image with text and I'll extract it automatically!
 
-Type any command to get started! 🚀
-`;
+Type any command to get started! 🚀`;
 
       switch (command.toLowerCase()) {
         case "start":
           return sendMessage(messageObj, botInformationString);
         case "weather":
           return getWeather(messageObj);
+
+        // ✅ FIXED: Use AI motivation instead of simple
         case "motivation":
-          return getMotivationSimple(messageObj);
+          return getMotivation(messageObj);
+
         case "price":
           return getCryptoPrices(messageObj);
         case "news":
           return getCryptoNews(messageObj);
+
+        // ✅ FIXED: Singular form
         case "challenge":
           return getDailyChallenge(messageObj);
+
         case "affirmations":
           return sendPrecious(messageObj);
         case "rate":
           return convertCurrency(messageObj);
+
+        // ✅ FIXED: Singular form
         case "fact":
           return getRandomFact(messageObj);
+
         case "ocr":
         case "text":
         case "extract":
@@ -1132,48 +1153,64 @@ Type any command to get started! 🚀
             messageObj,
             "📸 OCR (Text Extraction)\n\nSend me any image containing text and I'll extract it for you!\n\n✅ Supported:\n• Documents, screenshots\n• Signs, handwritten notes\n• Books, articles, forms\n• Multiple languages\n\n📷 Just send the image directly - no command needed!"
           );
+
         case "wallet": {
           const walletAddress = messageText.split(" ")[1];
           if (!walletAddress) {
             return sendMessage(
               messageObj,
-              "Please provide a valid wallet address."
+              "Please provide a valid wallet address.\nExample: /wallet 9WzDXwBbmkg8ZTbNMqUxvQRAyrZzDsGYdLVL9zYtAWWM"
             );
           }
+
+          // Basic validation
+          if (walletAddress.length < 32 || walletAddress.length > 44) {
+            return sendMessage(messageObj, "❌ Invalid wallet address format.");
+          }
+
           addUserWallet(userId, walletAddress);
           try {
             const walletAmount = await getWalletAmount(userId);
             return sendMessage(
               messageObj,
-              `Your wallet amount is ${walletAmount} SOL.`
+              `🏦 Wallet Balance:\n💰 ${walletAmount.toFixed(
+                4
+              )} SOL\n📍 Address: ${walletAddress.substring(
+                0,
+                8
+              )}...${walletAddress.substring(walletAddress.length - 8)}`
             );
-            console.log("Your wallet amount is ${walletAmount} SOL.");
           } catch (error) {
             console.error("Error fetching wallet amount:", error.message);
-            return sendMessage(messageObj, "Failed to fetch wallet amount.");
+            return sendMessage(messageObj, "❌ Failed to fetch wallet amount.");
           }
         }
+
         default:
           return sendMessage(
             messageObj,
-            "Hey, I don't know that command. Try /start, /weather, /motivation, /price or /rate."
+            "🤔 Unknown command! Type /start to see all available commands."
           );
       }
     } else if (
       messageText.toLowerCase() === "hi" ||
-      messageText.toLowerCase() === "hello"
+      messageText.toLowerCase() === "hello" ||
+      messageText.toLowerCase() === "hey"
     ) {
-      // Check for variations of "hi" and "hello"
+      // ✅ ENHANCED: Better greeting
       return sendMessage(
         messageObj,
-        "Hey there, I'm Merem-R2D2, a bot created by Merem"
+        "👋 Hey there! I'm Merem-R2D2, your AI-powered assistant!\n\n🎯 Try /challenge for a daily challenge\n🤯 Try /fact for a fun fact\n📸 Send me any image to extract text\n\nType /start to see all features! 🚀"
       );
     } else {
-      return sendMessage(messageObj, messageText);
+      return sendMessage(
+        messageObj,
+        `You said: "${messageText}"\n\nType /start to see my commands! 😊`
+      );
     }
   } catch (error) {
     console.error("Error handling message:", error.message);
-    return sendMessage(messageObj, "Failed to process your message.");
+    return sendMessage(messageObj, "❌ Failed to process your message.");
   }
 };
 
