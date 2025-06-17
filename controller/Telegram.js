@@ -120,16 +120,75 @@ const merem = [
   "You are a source of inspiration",
   // Add more affirmations as needed
 ];
-
-const sendPrecious = async (messageObj) => {
+const generateAffirmationWithTypes = async () => {
   try {
+    const geminiApiKey = process.env.GEMINI_API_KEY;
+
+    if (!geminiApiKey) {
+      return null;
+    }
+
+    // Random affirmation types for variety
+    const affirmationTypes = [
+      "Generate a confidence-building affirmation for Chinemerem focusing on their inner strength",
+      "Create a success-oriented affirmation for Chinemerem about achieving their goals",
+      "Write a self-worth affirmation for Chinemerem emphasizing their unique value",
+      "Generate a motivation affirmation for Chinemerem about overcoming challenges",
+      "Create a gratitude-based affirmation for Chinemerem about their blessings and potential",
+    ];
+
+    const randomType =
+      affirmationTypes[Math.floor(Math.random() * affirmationTypes.length)];
+
+    const response = await axios.post(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${geminiApiKey}`,
+      {
+        contents: [
+          {
+            parts: [
+              {
+                text: `${randomType}. Keep it personal, uplifting, and 1-2 sentences. Make it feel genuine and specifically for Chinemerem.`,
+              },
+            ],
+          },
+        ],
+      },
+      {
+        headers: {
+          "Content-Type": "application/json",
+        },
+        timeout: 8000,
+      }
+    );
+
+    if (response.data?.candidates?.[0]?.content?.parts?.[0]?.text) {
+      return response.data.candidates[0].content.parts[0].text.trim();
+    }
+
+    return null;
+  } catch (error) {
+    console.error("Error with enhanced Gemini affirmations:", error.message);
+    return null;
+  }
+};
+const sendPreciousWithEnhancedAI = async (messageObj) => {
+  try {
+    const aiAffirmation = await generateAffirmationWithTypes();
+    if (aiAffirmation) {
+      return sendMessage(messageObj, `✨ R2D2 Cares ✨\n\n${aiAffirmation}`);
+    }
+
+    // Fallback to hardcoded
     const randomIndex = Math.floor(Math.random() * merem.length);
     const affirmation = merem[randomIndex];
 
-    return sendMessage(messageObj, affirmation);
+    return sendMessage(
+      messageObj,
+      `✨ Personal Affirmation ✨\n\n${affirmation}`
+    );
   } catch (error) {
-    console.error("Error fetching affirmation:", error.message);
-    return sendMessage(messageObj, "Failed to fetch affirmation.");
+    console.error("Error generating affirmation:", error.message);
+    return sendMessage(messageObj, "❌ Failed to generate affirmation.");
   }
 };
 
@@ -161,7 +220,7 @@ const getMotivation = async (messageObj) => {
     // Try Gemini API first
     const geminiQuote = await generateMotivationalQuoteWithGemini();
     if (geminiQuote && !geminiQuote.includes("Theodore Roosevelt")) {
-      return sendMessage(messageObj, `💪 AI Motivation:\n\n${geminiQuote}`);
+      return sendMessage(messageObj, `💪 R2D2 Motivation:\n\n${geminiQuote}`);
     }
 
     // Fallback to hardcoded quotes if Gemini fails
@@ -374,7 +433,7 @@ const handleMessage = async (messageObj) => {
       // Check for variations of "hi" and "hello"
       return sendMessage(
         messageObj,
-        "Hey there, I'm Merem-R2D2, a bot created by Merem's-Lab"
+        "Hey there, I'm Merem-R2D2, a bot created by Merem"
       );
     } else {
       return sendMessage(messageObj, messageText);
