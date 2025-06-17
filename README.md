@@ -11,6 +11,7 @@
 - **Currency Exchange** - USD to NGN conversion with multiple reliable sources
 - **Solana Wallet Tracker** - Check SOL balance for any wallet address
 - **Crypto News** - Latest cryptocurrency and blockchain news
+- **Optical character Recognition** - Image to Text
 
 ### 🤖 **AI-Powered Content**
 - **Smart Motivational Quotes** - AI-generated inspiration using Gemini AI
