@@ -11,13 +11,14 @@
 - **Currency Exchange** - USD to NGN conversion with multiple reliable sources
 - **Solana Wallet Tracker** - Check SOL balance for any wallet address
 - **Crypto News** - Latest cryptocurrency and blockchain news
-- **Optical character Recognition** - Image to Text
+
 
 ### 🤖 **AI-Powered Content**
 - **Smart Motivational Quotes** - AI-generated inspiration using Gemini AI
 - **Personal Affirmations** - Customized encouragement for personal growth
 - **Fun Facts Generator** - Endless fascinating facts powered by Claude AI
 - **Daily Challenges** - Personalized challenges for self-improvement
+- **Optical character Recognition** - Image to Text
 
 ### 🌍 **Utilities**
 - **Weather Forecasts** - Current weather for any city (default: Brampton)
