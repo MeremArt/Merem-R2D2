@@ -258,6 +258,8 @@ const sendPrecious = async (messageObj) => {
 
 const getCryptoPrices = async (messageObj) => {
   try {
+    console.log("🔍 Fetching crypto prices...");
+
     const response = await axios.get(
       "https://api.coingecko.com/api/v3/simple/price",
       {
@@ -265,18 +267,68 @@ const getCryptoPrices = async (messageObj) => {
           ids: "bitcoin,ethereum,solana",
           vs_currencies: "usd",
         },
+        timeout: 8000, // 8 second timeout
+        headers: {
+          Accept: "application/json",
+          "User-Agent": "Merem-R2D2-Bot/1.0",
+        },
       }
     );
 
-    const bitcoinPrice = response.data.bitcoin.usd;
-    const ethereumPrice = response.data.ethereum.usd;
-    const solanaPrice = response.data.solana.usd;
+    console.log("✅ Got crypto API response:", response.status);
 
-    const pricesMessage = `Bitcoin (BTC): $${bitcoinPrice}\nEthereum (ETH): $${ethereumPrice}\nSolana (SOL): $${solanaPrice}`;
+    // Check if we got valid data
+    if (!response.data || typeof response.data !== "object") {
+      throw new Error("Invalid response format from CoinGecko API");
+    }
+
+    // Validate individual prices
+    const bitcoinPrice = response.data.bitcoin?.usd;
+    const ethereumPrice = response.data.ethereum?.usd;
+    const solanaPrice = response.data.solana?.usd;
+
+    if (!bitcoinPrice || !ethereumPrice || !solanaPrice) {
+      console.error("❌ Missing price data:", response.data);
+      throw new Error("Incomplete price data received");
+    }
+
+    // Format prices with thousand separators
+    const formattedBTC = bitcoinPrice.toLocaleString("en-US", {
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
+    });
+    const formattedETH = ethereumPrice.toLocaleString("en-US", {
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
+    });
+    const formattedSOL = solanaPrice.toLocaleString("en-US", {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    });
+
+    const pricesMessage = `💰 Crypto Prices:\n\n🟠 Bitcoin (BTC): $${formattedBTC}\n🔷 Ethereum (ETH): $${formattedETH}\n🟣 Solana (SOL): $${formattedSOL}\n\n🕐 Updated: ${new Date().toLocaleTimeString()}`;
+
+    console.log("✅ Sending crypto prices message");
     return sendMessage(messageObj, pricesMessage);
   } catch (error) {
-    console.error("Error fetching crypto prices:", error.message);
-    return sendMessage(messageObj, "Failed to fetch crypto prices.");
+    console.error("❌ Crypto prices error:", error.message);
+    console.error("Error details:", error.response?.data || error.stack);
+
+    // More specific error messages
+    let errorMessage = "❌ Failed to fetch crypto prices.";
+
+    if (error.code === "ECONNABORTED") {
+      errorMessage = "❌ Crypto price request timed out. Please try again.";
+    } else if (error.response?.status === 429) {
+      errorMessage =
+        "❌ Rate limit exceeded. Please wait a moment and try again.";
+    } else if (error.response?.status >= 500) {
+      errorMessage = "❌ CoinGecko server error. Please try again later.";
+    } else if (error.message.includes("Invalid response")) {
+      errorMessage = "❌ Invalid data from crypto API. Please try again.";
+    }
+
+    return sendMessage(messageObj, errorMessage);
   }
 };
 const getMotivation = async (messageObj) => {
