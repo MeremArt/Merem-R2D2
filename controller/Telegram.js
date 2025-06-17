@@ -414,7 +414,7 @@ const getMotivation = async (messageObj) => {
       console.log("✅ Using Gemini AI quote");
       return sendMessage(
         messageObj,
-        `💪 AI Motivation Quote:\n\n${geminiQuote}`
+        `💪 R2D2 Motivation Quote:\n\n${geminiQuote}`
       );
     }
 
@@ -476,13 +476,12 @@ const getRandomFact = async (messageObj) => {
   try {
     console.log("🔍 Generating fun fact...");
 
-    // Try Claude AI first
     const aiFact = await generateFactWithClaude();
     if (aiFact && aiFact.length > 20) {
       console.log("✅ Using Claude AI fact");
       return sendMessage(
         messageObj,
-        `🤯 AI Fun Fact:\n\n${aiFact}\n\n🔄 Type /fact for another one!`
+        `🤯 R2D2 Fun Fact:\n\n${aiFact}\n\n🔄 Type /fact for another one!`
       );
     }
 
@@ -675,7 +674,6 @@ const getDailyChallenge = async (messageObj) => {
   try {
     console.log("🔍 Generating daily challenge...");
 
-    // Try Claude AI first
     const aiChallenge = await generateChallengeWithClaude();
     if (aiChallenge && aiChallenge.length > 20) {
       console.log("✅ Using Claude AI challenge");
@@ -788,7 +786,7 @@ const celebrateChallenge = async (messageObj) => {
           );
         }
       } catch (error) {
-        console.log("AI celebration failed, using fallback");
+        console.log("R2D2 celebration failed, using fallback");
       }
     }
 

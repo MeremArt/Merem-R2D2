@@ -1,7 +1,7 @@
 {
   "name": "merem_bot",
   "version": "1.0.0",
-  "description": "bot ",
+  "description": "AI-powered Telegram bot with crypto prices, weather, motivation quotes, fun facts & daily challenges. Features Solana wallet tracking, USD/NGN conversion, and crypto news. Built with Node.js, Gemini AI & Claude AI. 99.9% uptime with robust fallbacks ",
   "main": "index.js",
   "scripts": {
     "start": "nodemon index.js"
