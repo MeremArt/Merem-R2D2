@@ -67,12 +67,13 @@ const convertCurrency = async (messageObj) => {
 
 const getCryptoNews = async (messageObj) => {
   try {
-    const apiKey = "pub_396785e3cfba86a747a093039efd37715c578"; // Replace with your actual API key
+    const apiKey = process.env.NEWSDATA_API_KEY;
     const response = await axios.get("https://newsdata.io/api/1/news", {
       params: {
         apikey: apiKey,
-        q: "pegasus",
+        q: "cryptocurrency bitcoin ethereum solana blockchain",
         language: "en",
+        category: "technology",
       },
     });
 
@@ -156,32 +157,41 @@ const getCryptoPrices = async (messageObj) => {
   }
 };
 
-const getMotivation = async (messageObj) => {
+const generateMotivationalQuoteWithGemini = async () => {
   try {
-    const response = await fetch("https://type.fit/api/quotes");
-    const data = await response.json();
+    const geminiApiKey = process.env.GEMINI_API_KEY;
 
-    if (data && data.length > 0) {
-      const randomIndex = Math.floor(Math.random() * data.length);
-      const motivationQuote = data[randomIndex].text;
-      const author = data[randomIndex].author.split(",")[0].trim(); // Remove "type.fit"
+    const response = await axios.post(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${geminiApiKey}`,
+      {
+        contents: [
+          {
+            parts: [
+              {
+                text: 'Generate one inspiring motivational quote with author attribution. Format: "Quote" - Author Name',
+              },
+            ],
+          },
+        ],
+      },
+      {
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+    );
 
-      const formattedQuote = `"${motivationQuote}" - ${author}`;
-      return sendMessage(messageObj, `Motivation Quote: ${formattedQuote}`);
-    } else {
-      throw new Error("No motivation quotes found.");
-    }
+    return response.data.candidates[0].content.parts[0].text.trim();
   } catch (error) {
-    console.error("Error fetching motivation quote:", error.message);
-    return sendMessage(messageObj, "Failed to fetch motivation quote.");
+    console.error("Error with Gemini API:", error.message);
+    return "Believe you can and you're halfway there. - Theodore Roosevelt";
   }
 };
 
 const getWeather = async (messageObj) => {
-  // Replace 'YOUR_OPENWEATHER_API_KEY' with your actual API key
   const apiKey = process.env.WEATHER_API;
   const chat_id = messageObj?.chat?.id;
-  let city = "Lagos"; // Default city
+  let city = "Brampton";
 
   // Extract city from the message if provided by the user
   const messageTokens = messageObj.text.split(" ");
@@ -274,7 +284,7 @@ const handleMessage = async (messageObj) => {
         case "weather":
           return getWeather(messageObj);
         case "motivation":
-          return getMotivation(messageObj);
+          return generateMotivationalQuoteWithGemini(messageObj);
         case "price":
           return getCryptoPrices(messageObj);
         case "news":
