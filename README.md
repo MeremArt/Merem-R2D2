@@ -103,6 +103,7 @@ SOLANA_RPC_URL=https://api.mainnet-beta.solana.com
 /affirmations   - Get personalized affirmations
 /fact           - Get fascinating AI-generated facts
 /challenge      - Get your daily challenge
+/extract        - Get Image to text
 done            - Celebrate challenge completion
 ```
 
