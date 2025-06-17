@@ -156,19 +156,56 @@ const getCryptoPrices = async (messageObj) => {
     return sendMessage(messageObj, "Failed to fetch crypto prices.");
   }
 };
+const getMotivation = async (messageObj) => {
+  try {
+    // Try Gemini API first
+    const geminiQuote = await generateMotivationalQuoteWithGemini();
+    if (geminiQuote && !geminiQuote.includes("Theodore Roosevelt")) {
+      return sendMessage(messageObj, `💪 AI Motivation:\n\n${geminiQuote}`);
+    }
+
+    // Fallback to hardcoded quotes if Gemini fails
+    const fallbackQuotes = [
+      '"Success is not final, failure is not fatal: it is the courage to continue that counts." - Winston Churchill',
+      '"The way to get started is to quit talking and begin doing." - Walt Disney',
+      '"Your limitation—it\'s only your imagination." - Anonymous',
+      '"Great things never come from comfort zones." - Anonymous',
+      '"Dream it. Wish it. Do it." - Anonymous',
+      '"Success doesn\'t just find you. You have to go out and get it." - Anonymous',
+      '"The harder you work for something, the greater you\'ll feel when you achieve it." - Anonymous',
+      "\"Don't stop when you're tired. Stop when you're done.\" - Anonymous",
+      '"Wake up with determination. Go to bed with satisfaction." - Anonymous',
+      '"Do something today that your future self will thank you for." - Anonymous',
+    ];
+
+    const randomIndex = Math.floor(Math.random() * fallbackQuotes.length);
+    const quote = fallbackQuotes[randomIndex];
+
+    return sendMessage(messageObj, `💪 Motivation Quote:\n\n${quote}`);
+  } catch (error) {
+    console.error("Error getting motivation:", error.message);
+    return sendMessage(messageObj, "❌ Failed to get motivation quote.");
+  }
+};
 
 const generateMotivationalQuoteWithGemini = async () => {
   try {
     const geminiApiKey = process.env.GEMINI_API_KEY;
 
+    if (!geminiApiKey) {
+      console.log("No Gemini API key found, using fallback");
+      return null;
+    }
+
+    // Updated Gemini API endpoint
     const response = await axios.post(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${geminiApiKey}`,
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${geminiApiKey}`,
       {
         contents: [
           {
             parts: [
               {
-                text: 'Generate one inspiring motivational quote with author attribution. Format: "Quote" - Author Name',
+                text: 'Generate one inspiring motivational quote with author attribution. Keep it under 100 words. Format: "Quote text" - Author Name',
               },
             ],
           },
@@ -178,13 +215,23 @@ const generateMotivationalQuoteWithGemini = async () => {
         headers: {
           "Content-Type": "application/json",
         },
+        timeout: 8000,
       }
     );
 
-    return response.data.candidates[0].content.parts[0].text.trim();
+    if (response.data?.candidates?.[0]?.content?.parts?.[0]?.text) {
+      return response.data.candidates[0].content.parts[0].text.trim();
+    } else {
+      console.log("Gemini API returned unexpected response format");
+      return null;
+    }
   } catch (error) {
-    console.error("Error with Gemini API:", error.message);
-    return "Believe you can and you're halfway there. - Theodore Roosevelt";
+    console.error(
+      "Error with Gemini API:",
+      error.response?.status,
+      error.response?.data || error.message
+    );
+    return null;
   }
 };
 
@@ -284,7 +331,7 @@ const handleMessage = async (messageObj) => {
         case "weather":
           return getWeather(messageObj);
         case "motivation":
-          return generateMotivationalQuoteWithGemini(messageObj);
+          return getMotivation(messageObj);
         case "price":
           return getCryptoPrices(messageObj);
         case "news":
