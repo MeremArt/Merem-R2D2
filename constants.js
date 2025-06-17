@@ -1,4 +1,5 @@
 // Constants.js
+require("dotenv").config();
 module.exports = {
   MY_TOKEN: process.env.MY_TOKEN,
   BASE_URL: "https://api.telegram.org",
