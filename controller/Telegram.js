@@ -211,16 +211,40 @@ const generateAffirmationWithTypes = async () => {
     return null;
   }
 };
-const sendPreciousWithEnhancedAI = async (messageObj) => {
+
+const sendPrecious = async (messageObj) => {
   try {
+    // Try AI-generated affirmation first
     const aiAffirmation = await generateAffirmationWithTypes();
     if (aiAffirmation) {
-      return sendMessage(messageObj, `✨ R2D2 Cares ✨\n\n${aiAffirmation}`);
+      return sendMessage(
+        messageObj,
+        `✨ AI Personal Affirmation ✨\n\n${aiAffirmation}`
+      );
     }
 
-    // Fallback to hardcoded
-    const randomIndex = Math.floor(Math.random() * merem.length);
-    const affirmation = merem[randomIndex];
+    // Fallback to hardcoded affirmations if AI fails
+    const enhancedMerem = [
+      "You are loved beyond measure, Chinemerem ✨",
+      "You are capable of amazing things, Chinemerem 💪",
+      "You are worthy of all good things, Chinemerem 🌟",
+      "You are strong beyond measure, Chinemerem 💎",
+      "Believe in yourself, Chinemerem - you have incredible potential 🚀",
+      "You are deserving of happiness, Chinemerem 😊",
+      "You are unique and bring something special to this world, Chinemerem 🦋",
+      "You are resilient and unbreakable, Chinemerem 🛡️",
+      "You are intelligent and wise, Chinemerem 🧠",
+      "You are creative and innovative, Chinemerem 💡",
+      "You are filled with unlimited potential, Chinemerem 🌱",
+      "You are blessed with abundance, Chinemerem 🙏",
+      "You are surrounded by love and positivity, Chinemerem ☀️",
+      "You are making a positive difference in the world, Chinemerem 🌍",
+      "You are admired for your authentic self, Chinemerem 👑",
+      "You are appreciated more than you know, Chinemerem 💝",
+    ];
+
+    const randomIndex = Math.floor(Math.random() * enhancedMerem.length);
+    const affirmation = enhancedMerem[randomIndex];
 
     return sendMessage(
       messageObj,
