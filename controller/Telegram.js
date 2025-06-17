@@ -36,19 +36,58 @@ const getWalletAmount = async (userId) => {
 
 const convertCurrency = async (messageObj) => {
   try {
-    const fromCurrency = "USD";
-    const toCurrency = "NGN";
-    const amountToConvert = 1;
+    const messageText = messageObj?.text || "";
+    let amount = 1;
 
-    const currencyConverter = new CC({
-      from: fromCurrency,
-      to: toCurrency,
-      amount: amountToConvert,
+    const tokens = messageText.split(" ");
+    if (tokens.length > 1 && !isNaN(tokens[1])) {
+      amount = parseFloat(tokens[1]);
+    }
+
+    let rate = null;
+
+    try {
+      const response = await axios.get(
+        "https://api.exchangerate-api.com/v4/latest/USD",
+        {
+          timeout: 5000,
+        }
+      );
+      if (response.data?.rates?.NGN) {
+        rate = response.data.rates.NGN;
+        console.log("✅ Got rate from ExchangeRate-API:", rate);
+      }
+    } catch (error) {
+      console.log("❌ ExchangeRate-API failed, trying backup...");
+    }
+
+    // Source 2: Fallback to your current method
+    if (!rate) {
+      try {
+        const CC = require("currency-converter-lt");
+        const currencyConverter = new CC({
+          from: "USD",
+          to: "NGN",
+          amount: 1,
+        });
+        const result = await currencyConverter.convert();
+        rate = parseFloat(result);
+        console.log("✅ Got rate from currency-converter-lt:", rate);
+      } catch (error) {
+        console.log("❌ Currency-converter-lt also failed");
+      }
+    }
+
+    if (!rate) {
+      throw new Error("All currency sources failed");
+    }
+
+    const convertedAmount = (amount * rate).toLocaleString("en-NG");
+    const formattedRate = rate.toLocaleString("en-US", {
+      minimumFractionDigits: 2,
     });
 
-    const response = await currencyConverter.convert();
-
-    const conversionMessage = `${amountToConvert} ${fromCurrency} / ${response} ${toCurrency}`;
+    const conversionMessage = `💱 USD to NGN Exchange Rate\n\n💵 ${amount} USD = ₦${convertedAmount} NGN\n📊 Current Rate: 1 USD = ₦${formattedRate}\n\n🕐 Updated: ${new Date().toLocaleTimeString()}`;
 
     console.log(conversionMessage);
 
@@ -57,7 +96,8 @@ const convertCurrency = async (messageObj) => {
     return conversionMessage;
   } catch (error) {
     console.error("Error converting currency:", error.message);
-    const errorMessage = "Failed to convert currency.";
+    const errorMessage =
+      "❌ Failed to fetch exchange rate. Please try again later.";
 
     await sendMessage(messageObj, errorMessage);
 
@@ -217,13 +257,15 @@ const getCryptoPrices = async (messageObj) => {
 };
 const getMotivation = async (messageObj) => {
   try {
+    let motivationMessage = "💪 Daily Motivation:\n\n";
+
     // Try Gemini API first
     const geminiQuote = await generateMotivationalQuoteWithGemini();
     if (geminiQuote && !geminiQuote.includes("Theodore Roosevelt")) {
-      return sendMessage(messageObj, `💪 R2D2 Motivation:\n\n${geminiQuote}`);
+      motivationMessage += `🤖 AI Generated:\n${geminiQuote}\n\n`;
     }
 
-    // Fallback to hardcoded quotes if Gemini fails
+    // Add 2-3 random fallback quotes
     const fallbackQuotes = [
       '"Success is not final, failure is not fatal: it is the courage to continue that counts." - Winston Churchill',
       '"The way to get started is to quit talking and begin doing." - Walt Disney',
@@ -237,13 +279,31 @@ const getMotivation = async (messageObj) => {
       '"Do something today that your future self will thank you for." - Anonymous',
     ];
 
-    const randomIndex = Math.floor(Math.random() * fallbackQuotes.length);
-    const quote = fallbackQuotes[randomIndex];
+    // Get 2-3 random unique quotes
+    const numberOfQuotes = 3;
+    const selectedQuotes = [];
+    const usedIndices = new Set();
 
-    return sendMessage(messageObj, `💪 Motivation Quote:\n\n${quote}`);
+    while (
+      selectedQuotes.length < numberOfQuotes &&
+      selectedQuotes.length < fallbackQuotes.length
+    ) {
+      const randomIndex = Math.floor(Math.random() * fallbackQuotes.length);
+      if (!usedIndices.has(randomIndex)) {
+        usedIndices.add(randomIndex);
+        selectedQuotes.push(fallbackQuotes[randomIndex]);
+      }
+    }
+
+    // Add numbered quotes to message
+    selectedQuotes.forEach((quote, index) => {
+      motivationMessage += `${index + 1}. ${quote}\n\n`;
+    });
+
+    return sendMessage(messageObj, motivationMessage.trim());
   } catch (error) {
     console.error("Error getting motivation:", error.message);
-    return sendMessage(messageObj, "❌ Failed to get motivation quote.");
+    return sendMessage(messageObj, "❌ Failed to get motivation quotes.");
   }
 };
 
