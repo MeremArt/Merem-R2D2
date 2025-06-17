@@ -472,6 +472,99 @@ const getMotivation = async (messageObj) => {
     return sendMessage(messageObj, `💪 Motivation Quote:\n\n${emergencyQuote}`);
   }
 };
+const getRandomFact = async (messageObj) => {
+  try {
+    console.log("🔍 Generating fun fact...");
+
+    // Try Claude AI first
+    const aiFact = await generateFactWithClaude();
+    if (aiFact && aiFact.length > 20) {
+      console.log("✅ Using Claude AI fact");
+      return sendMessage(
+        messageObj,
+        `🤯 AI Fun Fact:\n\n${aiFact}\n\n🔄 Type /fact for another one!`
+      );
+    }
+
+    console.log("⚠️ Claude failed, using fallback facts");
+
+    // Fallback to curated facts
+    const fallbackFacts = [
+      "🍯 Honey never spoils! Archaeologists have found edible honey in ancient Egyptian tombs that's over 3,000 years old.",
+      "🐙 Octopuses have three hearts and blue blood! Two hearts pump blood to the gills, and one pumps to the rest of the body.",
+      "🌙 A day on Venus is longer than its year! It takes 243 Earth days to rotate once, but only 225 Earth days to orbit the Sun.",
+      "🦈 Sharks have been around longer than trees! Sharks evolved about 400 million years ago, while trees appeared around 350 million years ago.",
+      "🧠 Your brain uses about 20% of your body's total energy, even though it only weighs about 2% of your body weight.",
+      "🐨 Koalas sleep 18-22 hours per day! They need all that rest to digest their low-nutrition eucalyptus diet.",
+      "⚡ Lightning strikes the Earth about 100 times per second! That's roughly 8.6 million times per day.",
+      "🌊 The Pacific Ocean is larger than all land masses combined! It covers about 46% of Earth's water surface.",
+      "🦒 Giraffes only need 5-30 minutes of sleep per day! They often sleep standing up in short bursts.",
+      "🍌 Bananas are berries, but strawberries aren't! Botanically, berries have seeds inside their flesh.",
+      "🐧 Penguins can jump up to 6 feet out of water! They use this ability to hop onto ice or rocks.",
+      "🌟 There are more possible chess games than atoms in the observable universe! The number is approximately 10^120.",
+      "🦄 Narwhals are real! Their tusks are actually elongated teeth that can grow up to 10 feet long.",
+      "🎵 A group of flamingos is called a 'flamboyance'! Other cool group names: a murder of crows, a wisdom of owls.",
+      "🌍 If Earth were the size of a marble, the Sun would be about 8 feet away and the size of a bowling ball.",
+    ];
+
+    const randomIndex = Math.floor(Math.random() * fallbackFacts.length);
+    const selectedFact = fallbackFacts[randomIndex];
+
+    return sendMessage(
+      messageObj,
+      `🤯 Random Fun Fact:\n\n${selectedFact}\n\n🔄 Type /fact for another one!`
+    );
+  } catch (error) {
+    console.error("Error getting fun fact:", error.message);
+    return sendMessage(
+      messageObj,
+      "❌ Failed to get fun fact. Please try again!"
+    );
+  }
+};
+
+const generateFactWithClaude = async () => {
+  try {
+    const claudeApiKey = process.env.ANTHROPIC_API_KEY;
+
+    if (!claudeApiKey) {
+      console.log("No Claude API key found for facts");
+      return null;
+    }
+
+    const response = await axios.post(
+      "https://api.anthropic.com/v1/messages",
+      {
+        model: "claude-3-haiku-20240307",
+        max_tokens: 200,
+        messages: [
+          {
+            role: "user",
+            content:
+              "Generate one fascinating, surprising fun fact that most people don't know. Make it educational and engaging. Include a relevant emoji at the start. Keep it under 150 words and make sure it's accurate. Format: \"[emoji] [fact content]\"",
+          },
+        ],
+      },
+      {
+        headers: {
+          "x-api-key": claudeApiKey,
+          "Content-Type": "application/json",
+          "anthropic-version": "2023-06-01",
+        },
+        timeout: 8000,
+      }
+    );
+
+    if (response.data?.content?.[0]?.text) {
+      return response.data.content[0].text.trim();
+    }
+
+    return null;
+  } catch (error) {
+    console.error("Error generating fact with Claude:", error.message);
+    return null;
+  }
+};
 
 const generateMotivationalQuoteWithGemini = async () => {
   try {
@@ -607,6 +700,8 @@ const handleMessage = async (messageObj) => {
 
 🌐 Stay informed with global news! Use "/news" to stay up-to-date. 📰
 
+🤯 /fact - Get a fascinating R2D2-generated fun fact
+
 💱 Exchange Rate: Type "/rate" for the current exchange rate between USD and NGN.
 `;
 
@@ -625,6 +720,8 @@ const handleMessage = async (messageObj) => {
           return sendPrecious(messageObj);
         case "rate":
           return convertCurrency(messageObj);
+        case "facts":
+          return getRandomFact(messageObj);
         case "wallet": {
           const walletAddress = messageText.split(" ")[1];
           if (!walletAddress) {
